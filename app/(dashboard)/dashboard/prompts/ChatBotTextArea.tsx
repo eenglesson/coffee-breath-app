@@ -6,7 +6,7 @@ import { ArrowUp, LayoutList } from 'lucide-react';
 import React, { useState } from 'react';
 
 interface ChatBotTextAreaProps {
-  onSendMessage: (text: string) => void;
+  onSendMessage?: (text: string) => void;
 }
 
 export default function ChatBotTextArea({
@@ -16,7 +16,7 @@ export default function ChatBotTextArea({
 
   const handleSubmit = () => {
     if (message.trim()) {
-      onSendMessage(message);
+      onSendMessage?.(message);
       console.log('Message sent:', message);
       setMessage('');
     }
