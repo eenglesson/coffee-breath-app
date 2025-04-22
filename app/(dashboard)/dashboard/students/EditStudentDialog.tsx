@@ -32,6 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { formatName } from '@/app/utils/formatName';
 
 export const schoolYears = [
   { value: '0a', label: '0A' },
@@ -132,10 +133,15 @@ export default function EditStudentDialog({
 '
         >
           <DialogHeader>
-            <DialogTitle>Edit {student.full_name}</DialogTitle>
+            <DialogTitle>
+              Editing{' '}
+              <span className='text-primary'>
+                {formatName(student.full_name)}
+              </span>
+            </DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-4'>
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
               <FormField
                 control={form.control}
                 name='fullName'

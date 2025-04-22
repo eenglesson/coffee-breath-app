@@ -10,6 +10,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from '@/components/ui/sidebar';
 import Link from 'next/link';
 
@@ -28,6 +29,7 @@ export function NavMain({
   }[];
 }) {
   const pathname = usePathname();
+  const { isMobile, setOpenMobile } = useSidebar(); // 👈 grab it here
 
   return (
     <SidebarGroup>
@@ -45,21 +47,24 @@ export function NavMain({
               className='group/collapsible'
             >
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  tooltip={item.title}
-                  className={
-                    isCurrentPage ? 'bg-accent text-accent-foreground' : ''
-                  }
+                <Link
+                  href={item.url}
+                  className='flex items-center cursor-default gap-2'
+                  onClick={() => {
+                    if (isMobile) setOpenMobile(false); // 👈 autoclose
+                  }}
                 >
-                  <Link
-                    href={item.url}
-                    className='flex items-center cursor-default gap-2'
+                  <SidebarMenuButton
+                    tooltip={item.title}
+                    className={
+                      isCurrentPage ? 'bg-accent text-accent-foreground' : ''
+                    }
                   >
                     {item.icon && <item.icon size={16} />}
 
                     <span>{item.title}</span>
-                  </Link>
-                </SidebarMenuButton>
+                  </SidebarMenuButton>
+                </Link>
 
                 <CollapsibleContent></CollapsibleContent>
               </SidebarMenuItem>

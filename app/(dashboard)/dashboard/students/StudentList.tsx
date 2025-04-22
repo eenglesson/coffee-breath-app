@@ -11,6 +11,7 @@ import { BookOpenText, Edit, GraduationCap, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EditStudentDialog from './EditStudentDialog';
 import { Tables } from '@/database.types';
+import { formatName } from '@/app/utils/formatName';
 
 interface StudentListProps {
   searchResults: Tables<'students'>[];
@@ -161,8 +162,8 @@ export default function StudentList({
         >
           <CardHeader className='flex justify-between'>
             <aside>
-              <h2 className='text-2xl first-letter:uppercase font-semibold'>
-                {student.full_name ?? 'Unknown'}
+              <h2 className='text-2xl font-semibold'>
+                {formatName(student.full_name)}
               </h2>
               <div className='flex items-center gap-2 text-sm text-muted-foreground'>
                 <GraduationCap size={24} strokeWidth={1.5} />

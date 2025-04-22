@@ -37,12 +37,12 @@ const data = {
     },
     {
       title: 'Students',
-      url: '/students',
+      url: '/dashboard/students',
       icon: Users,
     },
     {
       title: 'Prompts',
-      url: '/prompts',
+      url: '/dashboard/prompts',
       icon: Bot,
     },
   ],
