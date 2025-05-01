@@ -1,7 +1,3 @@
-export default function Page() {
-  return (
-    <>
-      <div>Home</div>
-    </>
-  );
+export default async function Page() {
+  return <ul></ul>;
 }

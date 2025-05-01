@@ -167,7 +167,7 @@ export default function StudentList({
               </h2>
               <div className='flex items-center gap-2 text-sm text-muted-foreground'>
                 <GraduationCap size={24} strokeWidth={1.5} />
-                <span>Årskurs • {student.school_year ?? 'N/A'}</span>
+                <span>Class • {student.school_year ?? 'N/A'}</span>
               </div>
             </aside>
             <Button

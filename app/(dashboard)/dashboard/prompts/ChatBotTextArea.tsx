@@ -2,15 +2,19 @@
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { Student } from '@/lib/supabase/students';
 import { ArrowUp, LayoutList } from 'lucide-react';
 import React, { useState } from 'react';
+import PopoverListStudents from './PopoverListStudents';
 
 interface ChatBotTextAreaProps {
   onSendMessage?: (text: string) => void;
+  students: Student[];
 }
 
 export default function ChatBotTextArea({
   onSendMessage,
+  students,
 }: ChatBotTextAreaProps) {
   const [message, setMessage] = useState('');
 
@@ -30,7 +34,7 @@ export default function ChatBotTextArea({
   };
 
   return (
-    <div className='max-w-3xl flex w-full'>
+    <div className='flex w-full'>
       <TooltipProvider>
         <div className='relative border rounded-xl overflow-hidden bg-background shadow-sm w-full'>
           <div className='relative'>
@@ -45,15 +49,18 @@ export default function ChatBotTextArea({
             />
           </div>
           <div className='flex justify-between items-center p-2 '>
-            <Button
-              type='button'
-              size='icon'
-              variant='outline'
-              className='rounded-full'
-              aria-label='Layout list'
-            >
-              <LayoutList />
-            </Button>
+            <div className='flex items-center gap-2'>
+              <Button
+                type='button'
+                size='icon'
+                variant='outline'
+                className='rounded-full'
+                aria-label='Layout list'
+              >
+                <LayoutList />
+              </Button>
+              <PopoverListStudents students={students} />
+            </div>
             <Button
               type='button'
               size='icon'

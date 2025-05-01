@@ -1,41 +1,57 @@
-/**
- * Capitalises a person’s full name following common Western‑style rules:
- *   • First letter of every word to upper‑case
- *   • Preserves hyphenated given names (“Anne‑Marie”)
- *   • Handles O’Connor, D’Angelo, McDonald, MacIntyre, etc.
- */
-export function formatName(raw: string | null | undefined): string {
+export interface FormatNameOptions {
+  capitalizeLastLetter?: boolean;
+}
+
+export function formatName(
+  raw: string | null | undefined,
+  options: FormatNameOptions = {}
+): string {
   if (!raw) return '';
 
-  // lower‑case everything first to standardise
+  const { capitalizeLastLetter = false } = options;
+
+  // Lower-case everything first to standardize
   return raw
     .toLowerCase()
-    .split(/\s+/) // split on whitespace
+    .split(/\s+/) // Split on whitespace
     .map((word) => {
-      // handle hyphenated parts individually
+      // Handle hyphenated parts individually
       return word
         .split('-')
         .map((part) => {
           // O’Connor / D’Angelo
           if (/^[od]'.{1,}$/.test(part)) {
-            return (
+            const formatted =
               part.charAt(0).toUpperCase() +
               part.charAt(1) +
               part.charAt(2).toUpperCase() +
-              part.slice(3)
-            );
+              part.slice(3);
+            return capitalizeLastLetter
+              ? formatted.slice(0, -1) + formatted.slice(-1).toUpperCase()
+              : formatted;
           }
           // McDonald / MacIntyre
           if (/^mc[a-z]/.test(part)) {
-            return 'Mc' + part.charAt(2).toUpperCase() + part.slice(3);
+            const formatted =
+              'Mc' + part.charAt(2).toUpperCase() + part.slice(3);
+            return capitalizeLastLetter
+              ? formatted.slice(0, -1) + formatted.slice(-1).toUpperCase()
+              : formatted;
           }
           if (/^mac[a-z]/.test(part)) {
-            return 'Mac' + part.charAt(3).toUpperCase() + part.slice(4);
+            const formatted =
+              'Mac' + part.charAt(3).toUpperCase() + part.slice(4);
+            return capitalizeLastLetter
+              ? formatted.slice(0, -1) + formatted.slice(-1).toUpperCase()
+              : formatted;
           }
-          // default: plain capitalisation
-          return part.charAt(0).toUpperCase() + part.slice(1);
+          // Default: plain capitalization
+          const formatted = part.charAt(0).toUpperCase() + part.slice(1);
+          return capitalizeLastLetter
+            ? formatted.slice(0, -1) + formatted.slice(-1).toUpperCase()
+            : formatted;
         })
-        .join('-'); // re‑join hyphenated pieces
+        .join('-'); // Re-join hyphenated pieces
     })
     .join(' ');
 }

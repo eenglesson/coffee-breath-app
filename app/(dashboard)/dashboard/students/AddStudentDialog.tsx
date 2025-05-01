@@ -166,7 +166,7 @@ export default function AddStudentDialog({ onClose }: AddStudentFormProps) {
               <Button type='button' variant='outline' onClick={onClose}>
                 Cancel
               </Button>
-              <Button type='submit'>Submit</Button>
+              <Button type='submit'>Add Student</Button>
             </DialogFooter>
           </form>
         </Form>
