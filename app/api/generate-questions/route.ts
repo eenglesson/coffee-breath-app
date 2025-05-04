@@ -62,6 +62,7 @@ function classifyIntent(prompt: string): string {
 async function generateQuestions(
   prompt: string,
   students: Tables<'students'>[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
   grok: ChatOpenAI
 ) {
@@ -109,6 +110,7 @@ async function generateQuestions(
 async function generateLessonPlan(
   prompt: string,
   students: Tables<'students'>[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   supabase: any,
   grok: ChatOpenAI
 ) {
