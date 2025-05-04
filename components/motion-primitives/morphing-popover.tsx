@@ -126,6 +126,7 @@ function MorphingPopoverTrigger({
 
   if (asChild && isValidElement(children)) {
     const MotionComponent = motion.create(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       children.type as React.ForwardRefExoticComponent<any>
     );
     const childProps = children.props as Record<string, unknown>;
@@ -180,7 +181,7 @@ function MorphingPopoverContent({
     );
 
   const ref = useRef<HTMLDivElement>(null);
-  useClickOutside(ref, context.close);
+  useClickOutside(ref as React.RefObject<HTMLElement>, context.close);
 
   useEffect(() => {
     if (!context.isOpen) return;
