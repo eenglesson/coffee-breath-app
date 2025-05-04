@@ -21,7 +21,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { createStudent } from '@/lib/supabase/students'; // Import the reusable function
 import {
   Select,
   SelectContent,
@@ -30,6 +29,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { schoolYears } from './EditStudentDialog';
+import { createStudent } from '@/lib/supabase/students';
+import { Tables } from '@/database.types';
 
 // Define the Zod schema for the form
 const studentSchema = z.object({
@@ -61,11 +62,11 @@ export default function AddStudentDialog({ onClose }: AddStudentFormProps) {
   ) => {
     try {
       await createStudent({
-        fullName: data.fullName.toLowerCase(),
-        yearInSchool: data.yearInSchool.toLowerCase(),
+        full_name: data.fullName.toLowerCase(),
+        school_year: data.yearInSchool.toLowerCase(),
         interests: data.interests,
-        learningDifficulties: data.learningDifficulties,
-      });
+        learning_difficulties: data.learningDifficulties,
+      } as Tables<'students'>);
       form.reset();
       onClose();
     } catch (error) {

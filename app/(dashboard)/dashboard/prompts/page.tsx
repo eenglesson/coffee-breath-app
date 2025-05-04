@@ -1,151 +1,144 @@
 'use client';
-
 import { createClient } from '@/lib/supabase/client';
-import { useState, useEffect } from 'react';
 import ChatBotTextArea from './ChatBotTextArea';
-import { Database } from '@/database.types';
-import PopoverListStudents from './PopoverListStudents';
-
-type Student = Database['public']['Tables']['students']['Row'];
+import { useState, useEffect } from 'react';
+import { Tables } from '@/database.types';
+import ReactMarkdown from 'react-markdown';
+import { TextShimmerWave } from '@/components/motion-primitives/text-shimmer-wave';
 
 export default function QuestionGeneratorPage() {
-  const [selectedStudents, setSelectedStudents] = useState<string[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [selectedStudentDetails, setSelectedStudentDetails] = useState<
-    Pick<Student, 'id' | 'full_name' | 'learning_difficulties' | 'interests'>[]
-  >([]); // New state for details
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [generated, setGenerated] = useState<
-    { studentId: string; question: string }[]
-  >([]);
-
   const supabase = createClient();
+  const [students, setStudents] = useState<Tables<'students'>[]>([]);
+  const [generatedQuestions, setGeneratedQuestions] = useState<
+    { studentId: string; questions: string[] }[]
+  >([]);
+  const [lessonPlan, setLessonPlan] = useState<string | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationType, setGenerationType] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchStudents = async () => {
-      setIsLoading(true);
-      setError(null);
-      try {
-        const { data, error } = await supabase.from('students').select('*');
-        if (error) throw error;
-        setStudents(data || []);
-      } catch (err) {
-        setError('Failed to fetch students');
-        console.error(err);
-      } finally {
-        setIsLoading(false);
+      const { data, error } = await supabase.from('students').select('*');
+      if (error) {
+        console.error('Error fetching students:', error);
+      } else {
+        setStudents(data);
       }
     };
     fetchStudents();
-  }, [supabase]);
+  }, []);
 
-  // Fetch details when selectedStudents change
-  useEffect(() => {
-    const fetchDetails = async () => {
-      if (selectedStudents.length === 0) {
-        setSelectedStudentDetails([]);
-        return;
-      }
-      const { data, error } = await supabase
-        .from('students')
-        .select('id, full_name, learning_difficulties, interests')
-        .in('id', selectedStudents);
-      if (error) {
-        console.error('Error fetching details:', error);
-      } else {
-        setSelectedStudentDetails(data || []);
-      }
-    };
-    fetchDetails();
-  }, [selectedStudents, supabase]);
+  const handleSendMessage = async (
+    prompt: string,
+    selectedStudents: Tables<'students'>[]
+  ) => {
+    if (!prompt.trim() || selectedStudents.length === 0) return;
 
-  const handleSendMessage = async (prompt: string) => {
-    if (selectedStudents.length === 0) {
-      alert('Please select at least one student.');
-      return;
-    }
+    const isQuestions = prompt.toLowerCase().includes('questions');
+    const isLessonPlan = prompt.toLowerCase().includes('lesson plan');
+    let type = 'content';
+    if (isQuestions) type = 'questions';
+    else if (isLessonPlan) type = 'lesson plan';
+
     setIsGenerating(true);
+    setGenerationType(type);
+    setErrorMessage(null);
+
     try {
       const response = await fetch('/api/generate-questions', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt,
-          students: selectedStudents.map((id) => ({ id })),
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt, students: selectedStudents }),
       });
-      if (response.ok) {
-        const data = await response.json();
-        setGenerated(data.answer);
+
+      if (!response.ok) {
+        throw new Error('Failed to generate content');
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        setErrorMessage(data.error);
+        setGeneratedQuestions([]);
+        setLessonPlan(null);
+      } else if (data.message === 'Questions generated') {
+        setGeneratedQuestions(data.answer);
+        setLessonPlan(null);
+        setErrorMessage(null);
+      } else if (data.message === 'Lesson plan generated') {
+        setLessonPlan(data.lessonPlan);
+        setGeneratedQuestions([]);
+        setErrorMessage(null);
       } else {
-        console.error('Failed to generate questions');
+        setErrorMessage('Unknown response type');
       }
     } catch (error) {
-      console.error('Error:', error);
+      console.error('Error generating content:', error);
+      setErrorMessage('An error occurred while generating content');
     } finally {
       setIsGenerating(false);
+      setGenerationType(null);
     }
   };
 
-  const handleStudentToggle = (studentId: string) => {
-    setSelectedStudents((prev) =>
-      prev.includes(studentId)
-        ? prev.filter((id) => id !== studentId)
-        : [...prev, studentId]
-    );
-  };
-
   return (
-    <div className=' max-w-3xl w-full mx-auto'>
+    <div className='max-w-3xl h-full w-full mx-auto'>
       <h1 className='text-2xl font-bold mb-4'>
-        Generate Personalized Math Questions
+        AI-Powered Educational Content Generator
       </h1>
-
-      {/* Display selected student details */}
-      {selectedStudentDetails.length > 0 && (
-        <div className='mb-4'>
-          <h3 className='text-lg font-semibold'>Selected Student Details:</h3>
-          {selectedStudentDetails.map((student) => (
-            <div key={student.id} className='mt-2'>
-              <p>
-                <strong>Name:</strong> {student.full_name}
-              </p>
-              <p>
-                <strong>Information</strong> {student.interests || 'None'}
-              </p>
-              <p>
-                <strong>Learning Difficulties:</strong>{' '}
-                {student.learning_difficulties || 'None'}
-              </p>
+      {errorMessage && (
+        <div className='mb-4 text-red-500'>
+          <p>{errorMessage}</p>
+        </div>
+      )}
+      <div className='h-fit px-4 mb-8'>
+        {!isGenerating && generatedQuestions.length > 0 && (
+          <div className=''>
+            <h2 className='text-xl font-semibold'>Generated Questions</h2>
+            {generatedQuestions.map((studentData, index) => {
+              const student = students.find(
+                (s) => s.id === studentData.studentId
+              );
+              return (
+                <div key={index} className=''>
+                  <p className='font-bold text-lg'>
+                    Student: {student?.full_name || 'Unknown'}
+                  </p>
+                  {studentData.questions.map((question, qIndex) => (
+                    <p key={qIndex} className='mt-2'>
+                      {question}
+                    </p>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        {!isGenerating && lessonPlan && (
+          <div className='mb-4'>
+            <h2 className='text-xl font-semibold'>Generated Lesson Plan</h2>
+            <div className='prose'>
+              <ReactMarkdown>{lessonPlan}</ReactMarkdown>
             </div>
-          ))}
+          </div>
+        )}
+      </div>
+
+      <div className='sticky bottom-4 w-full max-w-3xl '>
+        <div className='pb-1 ml-4'>
+          {isGenerating && (
+            <TextShimmerWave duration={1}>
+              {`Generating ${generationType ? generationType : 'content'}...`}
+            </TextShimmerWave>
+          )}
         </div>
-      )}
-
-      <ChatBotTextArea onSendMessage={handleSendMessage} students={students} />
-
-      {isGenerating && (
-        <p className='mt-2 text-gray-500'>Generating questions...</p>
-      )}
-      {generated.length > 0 && (
-        <div className='mt-6'>
-          <h2 className='text-lg font-semibold mb-2'>Generated Questions</h2>
-
-          {generated.map(({ studentId, question }) => {
-            const student = students.find((s) => s.id === studentId);
-            return (
-              <div key={studentId} className='mb-3'>
-                <p className='font-medium'>
-                  {student?.full_name ?? 'Student'}:
-                </p>
-                <p className='pl-4'>{question}</p>
-              </div>
-            );
-          })}
-        </div>
-      )}
+        <ChatBotTextArea
+          onSendMessage={handleSendMessage}
+          students={students}
+        />
+      </div>
     </div>
   );
 }

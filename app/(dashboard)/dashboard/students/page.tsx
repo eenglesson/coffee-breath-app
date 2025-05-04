@@ -50,9 +50,7 @@ export default function Page() {
 
       const { data, error } = await supabase
         .from('students')
-        .select(
-          'id, full_name, school_year, interests, learning_difficulties, created_at, school_id, updated_at'
-        )
+        .select('*')
         .or(`full_name.ilike.%${query}%, school_year.ilike.%${query}%`)
         .limit(10);
 

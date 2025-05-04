@@ -33,6 +33,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { formatName } from '@/app/utils/formatName';
+import { Tables } from '@/database.types';
 
 export const schoolYears = [
   { value: '0a', label: '0A' },
@@ -62,17 +63,15 @@ const studentSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   yearInSchool: z.string().min(1, 'Year in school is required'),
   interests: z.string().min(1, 'Interests are required'),
-  learningDifficulties: z.string().optional(),
+  learningDifficulties: z.string().nullable(),
 });
 
 interface EditStudentDialogProps {
-  student: {
-    id: string;
-    full_name: string | null;
-    school_year: string | null;
-    interests: string | null;
-    learning_difficulties: string | null;
-  };
+  student: Pick<
+    Tables<'students'>,
+    'id' | 'full_name' | 'school_year' | 'interests' | 'learning_difficulties'
+  >;
+
   onClose: () => void;
 }
 
@@ -90,7 +89,7 @@ export default function EditStudentDialog({
       fullName: student.full_name ?? '',
       yearInSchool: student.school_year ?? '',
       interests: student.interests ?? '',
-      learningDifficulties: student.learning_difficulties ?? '',
+      learningDifficulties: student.learning_difficulties ?? null,
     },
   });
 
@@ -100,11 +99,11 @@ export default function EditStudentDialog({
   ) => {
     try {
       await updateStudent(student.id, {
-        fullName: data.fullName.toLowerCase(),
-        yearInSchool: data.yearInSchool.toLocaleLowerCase(),
+        full_name: data.fullName.toLowerCase(),
+        school_year: data.yearInSchool.toLowerCase(),
         interests: data.interests,
-        learningDifficulties: data.learningDifficulties,
-      });
+        learning_difficulties: data.learningDifficulties,
+      } as Tables<'students'>);
       form.reset();
       onClose();
     } catch (error) {

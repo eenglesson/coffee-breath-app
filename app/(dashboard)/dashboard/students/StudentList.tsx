@@ -48,9 +48,7 @@ export default function StudentList({
       // Fetch students (RLS filters by school_id)
       const { data, error } = await supabase
         .from('students')
-        .select(
-          'id, full_name, school_year, interests, learning_difficulties, created_at, school_id, created_at, updated_at'
-        )
+        .select('*')
         .order('full_name', { ascending: true });
 
       if (error) {
@@ -167,7 +165,12 @@ export default function StudentList({
               </h2>
               <div className='flex items-center gap-2 text-sm text-muted-foreground'>
                 <GraduationCap size={24} strokeWidth={1.5} />
-                <span>Class • {student.school_year ?? 'N/A'}</span>
+                <span>
+                  Class •{' '}
+                  {formatName(student.school_year, {
+                    capitalizeLastLetter: true,
+                  })}
+                </span>
               </div>
             </aside>
             <Button

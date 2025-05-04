@@ -2,14 +2,17 @@
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import { Student } from '@/lib/supabase/students';
 import { ArrowUp, LayoutList } from 'lucide-react';
 import React, { useState } from 'react';
 import PopoverListStudents from './PopoverListStudents';
+import { Tables } from '@/database.types';
 
 interface ChatBotTextAreaProps {
-  onSendMessage?: (text: string) => void;
-  students: Student[];
+  onSendMessage?: (
+    text: string,
+    selectedStudents: Tables<'students'>[]
+  ) => void;
+  students: Tables<'students'>[];
 }
 
 export default function ChatBotTextArea({
@@ -17,20 +20,23 @@ export default function ChatBotTextArea({
   students,
 }: ChatBotTextAreaProps) {
   const [message, setMessage] = useState('');
+  const [selectedStudents, setSelectedStudents] = useState<
+    Tables<'students'>[]
+  >([]);
 
   const handleSubmit = () => {
-    if (message.trim()) {
-      onSendMessage?.(message);
-      console.log('Message sent:', message);
+    if (message.trim() && selectedStudents.length > 0) {
+      onSendMessage?.(message, selectedStudents);
       setMessage('');
+      // Optionally reset selectedStudents here if desired
+      // setSelectedStudents([]);
     }
   };
 
-  // Handle paste event to preserve formatting
   const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
-    e.preventDefault(); // Prevent default paste behavior
-    const pastedText = e.clipboardData.getData('text/plain'); // Get plain text from clipboard
-    setMessage((prev) => prev + pastedText); // Append pasted text to current message
+    e.preventDefault();
+    const pastedText = e.clipboardData.getData('text/plain');
+    setMessage((prev) => prev + pastedText);
   };
 
   return (
@@ -41,14 +47,14 @@ export default function ChatBotTextArea({
             <Textarea
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              onPaste={handlePaste} // Add paste event handler
-              className='w-full p-4  border-none resize-none min-h-32 max-h-48 shadow-none overflow-y-auto hide-scrollbar focus:ring-0 focus-visible:ring-0 bg-transparent'
+              onPaste={handlePaste}
+              className='w-full p-4 border-none resize-none min-h-32 max-h-40 shadow-none overflow-y-auto hide-scrollbar focus:ring-0 focus-visible:ring-0 bg-transparent'
               placeholder='Type your text here...'
               aria-label='Message input'
-              style={{ whiteSpace: 'pre-wrap' }} // Preserve line breaks and spacing
+              style={{ whiteSpace: 'pre-wrap' }}
             />
           </div>
-          <div className='flex justify-between items-center p-2 '>
+          <div className='flex justify-between items-center p-2'>
             <div className='flex items-center gap-2'>
               <Button
                 type='button'
@@ -59,20 +65,24 @@ export default function ChatBotTextArea({
               >
                 <LayoutList />
               </Button>
-              <PopoverListStudents students={students} />
+              <PopoverListStudents
+                students={students}
+                onSelect={setSelectedStudents}
+              />
             </div>
             <Button
               type='button'
               size='icon'
               onClick={handleSubmit}
+              disabled={!message.trim() || selectedStudents.length === 0}
               className={`
-              group rounded-full
-              ${
-                message.trim()
-                  ? 'bg-primary active:scale-110 hover:scale-110 transition-transform duration-150'
-                  : 'bg-muted-foreground hover:bg-muted-foreground'
-              }
-            `}
+                group rounded-full
+                ${
+                  message.trim() && selectedStudents.length > 0
+                    ? 'bg-primary active:scale-110 hover:scale-110 transition-transform duration-150'
+                    : 'bg-muted-foreground hover:bg-muted-foreground'
+                }
+              `}
               aria-label='Send message'
             >
               <ArrowUp className='text-white size-5' />

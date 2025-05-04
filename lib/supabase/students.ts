@@ -1,25 +1,6 @@
+import { Tables } from '@/database.types';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
-
-// Define the Student type (same as in StudentList.tsx)
-export interface Student {
-  id: string;
-  full_name: string | null;
-  school_year: string | null;
-  interests: string | null;
-  learning_difficulties: string | null;
-  created_at: string;
-  school_id: string | null;
-  created_by?: string;
-}
-
-// Input type for creating/updating students (matches Zod schema)
-export interface StudentInput {
-  fullName: string;
-  yearInSchool: string;
-  interests: string;
-  learningDifficulties?: string;
-}
 
 // Get the authenticated user's school_id from profiles table
 async function getUserSchoolId(supabase: ReturnType<typeof createClient>) {
@@ -42,17 +23,17 @@ async function getUserSchoolId(supabase: ReturnType<typeof createClient>) {
 }
 
 // Create a new student
-export async function createStudent(input: StudentInput) {
+export async function createStudent(input: Tables<'students'>) {
   const supabase = createClient();
   try {
     const school_id = await getUserSchoolId(supabase);
 
     const { error } = await supabase.from('students').insert([
       {
-        full_name: input.fullName,
-        school_year: input.yearInSchool,
+        full_name: input.full_name,
+        school_year: input.school_year,
         interests: input.interests,
-        learning_difficulties: input.learningDifficulties || null,
+        learning_difficulties: input.learning_difficulties,
         school_id,
       },
     ]);
@@ -72,16 +53,19 @@ export async function createStudent(input: StudentInput) {
 }
 
 // Update an existing student
-export async function updateStudent(studentId: string, input: StudentInput) {
+export async function updateStudent(
+  studentId: string,
+  input: Tables<'students'>
+) {
   const supabase = createClient();
   try {
     const { error } = await supabase
       .from('students')
       .update({
-        full_name: input.fullName,
-        school_year: input.yearInSchool,
+        full_name: input.full_name,
+        school_year: input.school_year,
         interests: input.interests,
-        learning_difficulties: input.learningDifficulties || null,
+        learning_difficulties: input.learning_difficulties,
       })
       .eq('id', studentId);
 

@@ -1,5 +1,5 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { formatName } from '@/app/utils/formatName';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,20 +14,20 @@ import {
   AccordionContent,
 } from '@/components/ui/accordion';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Student } from '@/lib/supabase/students';
-import { CheckedState } from '@radix-ui/react-checkbox';
+import { Tables } from '@/database.types';
 
 // Define component props
 interface PopoverListStudentsProps {
-  students: Student[];
+  students: Tables<'students'>[];
+  onSelect: (selectedStudents: Tables<'students'>[]) => void;
 }
 
 export default function PopoverListStudents({
   students,
+  onSelect,
 }: PopoverListStudentsProps) {
   // State to track selected student IDs
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-  console.log('Selected IDs:', selectedIds);
 
   // Group students by school_year using useMemo
   const groupedStudents = useMemo(() => {
@@ -38,7 +38,7 @@ export default function PopoverListStudents({
       }
       acc[year].students.push(student);
       return acc;
-    }, {} as Record<string, { school_year: string; students: Student[] }>);
+    }, {} as Record<string, { school_year: string; students: Tables<'students'>[] }>);
 
     return Object.values(groups).sort((a, b) =>
       a.school_year.localeCompare(b.school_year)
@@ -46,7 +46,7 @@ export default function PopoverListStudents({
   }, [students]);
 
   // Handle individual student selection
-  const onToggleStudent = (student: Student) => {
+  const onToggleStudent = (student: Tables<'students'>) => {
     setSelectedIds((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(student.id)) {
@@ -83,6 +83,15 @@ export default function PopoverListStudents({
     });
   };
 
+  // Notify parent component of selection changes
+  useEffect(() => {
+    const selectedStudents = students.filter((student) =>
+      selectedIds.has(student.id)
+    );
+    onSelect(selectedStudents);
+  }, [selectedIds, students, onSelect]);
+
+  // Button text based on selection count
   const buttonText =
     selectedIds.size === 0
       ? 'Choose Student'
@@ -99,7 +108,6 @@ export default function PopoverListStudents({
       </PopoverTrigger>
       <PopoverContent className='w-72 h-64 overflow-auto p-0'>
         <div className='flex flex-col'>
-          {/* Accordion for Classes */}
           <h1 className='sticky top-0 font-medium bg-white z-10 p-2 text-center border-b shadow-sm'>
             Select Students
           </h1>
@@ -116,21 +124,21 @@ export default function PopoverListStudents({
                 <AccordionItem
                   key={group.school_year}
                   value={group.school_year}
+                  className='w-full'
                 >
-                  <div>
-                    <AccordionTrigger className='flex items-center justify-between hover:no-underline hover:bg-accent py-1 my-1 px-1'>
-                      <div className='flex items-center gap-2 w-full'>
-                        <Checkbox
-                          checked={allSelected}
-                          className={
-                            someSelected && !allSelected ? 'bg-primary/50' : ''
-                          }
-                          onCheckedChange={(checked: CheckedState) => {
-                            if (checked !== 'indeterminate') {
-                              onToggleClass(group.school_year);
-                            }
-                          }}
-                        />
+                  <div className='flex items-center gap-2 w-full'>
+                    <Checkbox
+                      checked={
+                        allSelected
+                          ? true
+                          : someSelected
+                          ? 'indeterminate'
+                          : false
+                      }
+                      onCheckedChange={() => onToggleClass(group.school_year)}
+                    />
+                    <AccordionTrigger className='flex flex-1 items-center justify-between hover:no-underline hover:bg-accent py-1 my-1 px-2'>
+                      <div className='flex items-center gap-2'>
                         <p className='text-body'>
                           Class{' '}
                           {formatName(group.school_year, {
@@ -149,11 +157,7 @@ export default function PopoverListStudents({
                         >
                           <Checkbox
                             checked={selectedIds.has(student.id)}
-                            onCheckedChange={(checked: CheckedState) => {
-                              if (checked !== 'indeterminate') {
-                                onToggleStudent(student);
-                              }
-                            }}
+                            onCheckedChange={() => onToggleStudent(student)}
                           />
                           <span>
                             {student.full_name
