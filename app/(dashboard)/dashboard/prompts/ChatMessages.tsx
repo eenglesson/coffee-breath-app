@@ -1,6 +1,12 @@
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { CardContent, CardFooter } from '@/components/ui/card';
-import { Copy, RefreshCcw } from 'lucide-react';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@radix-ui/react-tooltip';
+import { CheckIcon, Copy, RefreshCcw } from 'lucide-react';
 
 export type Message = {
   id: string;
@@ -42,6 +48,7 @@ function Message({
   onRedo?: (userMessageId: string) => void;
   onStop?: () => void;
 }) {
+  const [copied, setCopied] = useState(false);
   const isUser = message.type === 'user';
   const isComplete = message.isComplete;
 
@@ -61,26 +68,58 @@ function Message({
         )}
         {!isUser && isComplete && (
           <CardFooter className='mt-2 p-0 flex gap-1 mb-8'>
-            <Button
-              size='icon'
-              variant='ghost'
-              className='text-muted-foreground hover:primary rounded-full'
-              onClick={() =>
-                onRedo && message.userMessageId && onRedo(message.userMessageId)
-              }
-            >
-              <RefreshCcw />
-            </Button>
-            <Button
-              size='icon'
-              variant='ghost'
-              className='text-muted-foreground hover:primary rounded-full'
-              onClick={() =>
-                onRedo && message.userMessageId && onRedo(message.userMessageId)
-              }
-            >
-              <Copy style={{ transform: 'scaleX(-1)' }} />
-            </Button>
+            <Tooltip delayDuration={150}>
+              <TooltipTrigger asChild>
+                <Button
+                  size='icon'
+                  variant='ghost'
+                  className='text-muted-foreground hover:primary rounded-full'
+                  onClick={() =>
+                    onRedo &&
+                    message.userMessageId &&
+                    onRedo(message.userMessageId)
+                  }
+                  aria-label='Regenerate response'
+                >
+                  <RefreshCcw />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent
+                side='bottom'
+                sideOffset={4}
+                className='bg-accent px-3 py-1 text-sm rounded-full'
+              >
+                <p>Regenerate</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip delayDuration={150}>
+              <TooltipTrigger asChild>
+                <Button
+                  size='icon'
+                  variant='ghost'
+                  className='text-muted-foreground hover:primary rounded-full'
+                  onClick={() => {
+                    navigator.clipboard.writeText(message.content);
+                    setCopied(true);
+                    setTimeout(() => setCopied(false), 1000);
+                  }}
+                  aria-label='Copy message'
+                >
+                  {copied ? (
+                    <CheckIcon className='text-foreground' />
+                  ) : (
+                    <Copy style={{ transform: 'scaleX(-1)' }} />
+                  )}
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent
+                side='bottom'
+                sideOffset={4}
+                className='bg-accent px-3 py-1 text-sm rounded-full'
+              >
+                <p>Copy</p>
+              </TooltipContent>
+            </Tooltip>
           </CardFooter>
         )}
         {!isUser && !isComplete && (
