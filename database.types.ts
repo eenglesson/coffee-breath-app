@@ -9,154 +9,44 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      generated_questions: {
+      conversations: {
         Row: {
           created_at: string | null
           id: string
-          interests_used: string[] | null
-          learning_difficulties: string | null
-          learning_question_id: string
-          question_text: string
-          school_id: string
-          student_id: string
+          messages: Json
+          student_id: string | null
           teacher_id: string
+          updated_at: string | null
         }
         Insert: {
           created_at?: string | null
           id?: string
-          interests_used?: string[] | null
-          learning_difficulties?: string | null
-          learning_question_id: string
-          question_text: string
-          school_id: string
-          student_id: string
+          messages?: Json
+          student_id?: string | null
           teacher_id: string
+          updated_at?: string | null
         }
         Update: {
           created_at?: string | null
           id?: string
-          interests_used?: string[] | null
-          learning_difficulties?: string | null
-          learning_question_id?: string
-          question_text?: string
-          school_id?: string
-          student_id?: string
+          messages?: Json
+          student_id?: string | null
           teacher_id?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
-            foreignKeyName: "generated_questions_learning_question_id_fkey"
-            columns: ["learning_question_id"]
-            isOneToOne: false
-            referencedRelation: "learning_questions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_questions_school_id_fkey"
-            columns: ["school_id"]
-            isOneToOne: false
-            referencedRelation: "schools"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "generated_questions_student_id_fkey"
+            foreignKeyName: "conversations_student_id_fkey"
             columns: ["student_id"]
             isOneToOne: false
             referencedRelation: "students"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "generated_questions_teacher_id_fkey"
+            foreignKeyName: "conversations_teacher_id_fkey"
             columns: ["teacher_id"]
             isOneToOne: false
             referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      learning_questions: {
-        Row: {
-          created_at: string | null
-          created_by: string | null
-          id: string
-          learning_goal: string | null
-          school_id: string | null
-          subject: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          learning_goal?: string | null
-          school_id?: string | null
-          subject?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          created_by?: string | null
-          id?: string
-          learning_goal?: string | null
-          school_id?: string | null
-          subject?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "learning_questions_created_by_fkey1"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "learning_questions_school_id_fkey"
-            columns: ["school_id"]
-            isOneToOne: false
-            referencedRelation: "schools"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      lesson_plans: {
-        Row: {
-          created_at: string
-          created_by: string | null
-          id: string
-          school_id: string | null
-          subject: string | null
-          text: string | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          school_id?: string | null
-          subject?: string | null
-          text?: string | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string
-          created_by?: string | null
-          id?: string
-          school_id?: string | null
-          subject?: string | null
-          text?: string | null
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "lesson_plans_created_by_fkey"
-            columns: ["created_by"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "lesson_plans_school_id_fkey"
-            columns: ["school_id"]
-            isOneToOne: false
-            referencedRelation: "schools"
             referencedColumns: ["id"]
           },
         ]

@@ -1,3 +1,4 @@
+// components/ChatContainer.tsx
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -6,7 +7,7 @@ import ChatBotTextArea from './ChatBotTextArea';
 
 export type Message = {
   id: string;
-  type: 'user' | 'ai';
+  type: 'user' | 'assistant';
   content: string;
   userMessageId?: string;
   isComplete: boolean;
@@ -15,14 +16,15 @@ export type Message = {
 export default function ChatContainer() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isAiResponding, setIsAiResponding] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const eventSourceRef = useRef<EventSource | null>(null);
 
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Scroll to the latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const sendMessage = (text: string) => {
+  const sendMessage = async (text: string) => {
     if (isAiResponding) return;
 
     setIsAiResponding(true);
@@ -37,52 +39,63 @@ export default function ChatContainer() {
     const aiMessageId = uuidv4();
     const aiMessage: Message = {
       id: aiMessageId,
-      type: 'ai',
+      type: 'assistant',
       content: '',
       userMessageId,
       isComplete: false,
     };
     setMessages((prev) => [...prev, userMessage, aiMessage]);
 
-    const eventSource = new EventSource(
-      `/api/generateQuestions?message=${encodeURIComponent(text)}`
-    );
-    eventSourceRef.current = eventSource;
+    try {
+      const response = await fetch('/api/conversation', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: text, context: messages }),
+      });
 
-    eventSource.onmessage = (event) => {
+      if (!response.ok) {
+        throw new Error('Failed to fetch response');
+      }
+
+      const data = await response.json();
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      // Parse the assistant's response
+      let parsedResponse;
+      try {
+        parsedResponse = JSON.parse(data.response);
+      } catch (error) {
+        console.error('Failed to parse assistant response:', error);
+        parsedResponse = { content: 'Error: Invalid response format' };
+      }
+
+      // Extract the content field
+      const assistantContent = parsedResponse.content || 'No content available';
+
+      // Update AI message with the parsed content
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === aiMessageId
-            ? { ...msg, content: msg.content + event.data }
+            ? { ...msg, content: assistantContent, isComplete: true }
             : msg
         )
       );
-    };
-
-    const handleStreamEnd = () => {
-      eventSource.close();
+    } catch (error) {
+      console.error('Error:', error);
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.id === aiMessageId ? { ...msg, isComplete: true } : msg
-        )
-      );
-      setIsAiResponding(false);
-    };
-
-    eventSource.onerror = handleStreamEnd;
-    eventSource.addEventListener('end', handleStreamEnd);
-  };
-
-  const stopStreaming = () => {
-    if (eventSourceRef.current) {
-      eventSourceRef.current.close();
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.type === 'ai' && !msg.isComplete
-            ? { ...msg, isComplete: true }
+          msg.id === aiMessageId
+            ? {
+                ...msg,
+                content: 'Error: Failed to fetch response',
+                isComplete: true,
+              }
             : msg
         )
       );
+    } finally {
       setIsAiResponding(false);
     }
   };
@@ -107,11 +120,11 @@ export default function ChatContainer() {
         </div>
       ) : (
         <>
-          <div className='flex-grow overflow-y-auto '>
+          <div className='flex-grow overflow-y-auto'>
             <ChatMessages
               messages={messages}
               onRedo={redoAnswer}
-              onStop={stopStreaming}
+              onStop={() => {}} // Empty function since streaming is removed
               messagesEndRef={messagesEndRef}
             />
           </div>

@@ -79,8 +79,8 @@ export default function ChatBotTextArea({
                 group rounded-full
                 ${
                   input.trim()
-                    ? 'bg-primary active:scale-110 hover:scale-110 transition-transform duration-150'
-                    : 'bg-muted-foreground'
+                    ? 'bg-primary  active:scale-110 hover:scale-110 transition-transform duration-150'
+                    : 'bg-muted-foreground hover:bg-muted-foreground'
                 }
               `}
               aria-label='Send message'

@@ -128,7 +128,7 @@ export default function EditStudentDialog({
       {/* Main Edit Dialog */}
       <Dialog open={true} onOpenChange={onClose}>
         <DialogContent
-          className='sm:max-w-[500px] overflow-y-auto
+          className='sm:max-w-[600px] overflow-y-auto 
 '
         >
           <DialogHeader>
@@ -140,7 +140,7 @@ export default function EditStudentDialog({
             </DialogTitle>
           </DialogHeader>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6'>
+            <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-6 '>
               <FormField
                 control={form.control}
                 name='fullName'
@@ -192,6 +192,7 @@ export default function EditStudentDialog({
                       <Textarea
                         placeholder='Enter interests separated by commas (e.g., BMX, skateboarding)'
                         {...field}
+                        className='h-32 text-sm placeholder:text-sm '
                       />
                     </FormControl>
                     <FormMessage />
@@ -209,6 +210,7 @@ export default function EditStudentDialog({
                         placeholder='Enter difficulties separated by commas (e.g., spelling, attention)'
                         {...field}
                         value={field.value || ''}
+                        className='h-32 text-sm placeholder:text-sm'
                       />
                     </FormControl>
                     <FormMessage />
@@ -224,7 +226,7 @@ export default function EditStudentDialog({
                   <Trash className='h-4 w-4' />
                   Delete
                 </Button>
-                <div className='flex flex-col-reverse md:flex-row gap-2'>
+                <div className='flex flex-col-reverse sm:flex-row gap-2'>
                   <Button type='button' variant='outline' onClick={onClose}>
                     Cancel
                   </Button>

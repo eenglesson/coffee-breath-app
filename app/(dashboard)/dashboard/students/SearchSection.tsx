@@ -3,41 +3,27 @@ import { Button } from '@/components/ui/button';
 import AddStudentDialog from './AddStudentDialog';
 import { SearchIcon, UserPlus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Tables } from '@/database.types';
 import { useState } from 'react';
 
 interface SearchSectionProps {
   searchTerm: string;
   setSearchTerm: (term: string) => void;
-  searchResults: Tables<'students'>[];
-  setSearchResults: (results: Tables<'students'>[]) => void;
-  isSearching: boolean;
-  setIsSearching: (isSearching: boolean) => void;
-  error: string | null;
-  setError: (error: string | null) => void;
-  debouncedSearch: (query: string) => void;
 }
 
 export default function SearchSection({
   searchTerm,
   setSearchTerm,
-  debouncedSearch,
 }: SearchSectionProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Handle input change
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const query = e.target.value;
-    setSearchTerm(query);
-    debouncedSearch(query);
+    setSearchTerm(e.target.value);
   };
 
-  // Open modal
   const handleAddStudent = () => {
     setIsModalOpen(true);
   };
 
-  // Close modal
   const closeModal = () => {
     setIsModalOpen(false);
   };
@@ -48,7 +34,7 @@ export default function SearchSection({
         <div className='flex-1'>
           <div className='relative max-w-64'>
             <Input
-              className='peer ps-9 truncate  placeholder:text-sm '
+              className='peer ps-9 truncate placeholder:text-sm'
               placeholder='Search by name or class...'
               value={searchTerm}
               onChange={handleSearchChange}

@@ -10,7 +10,7 @@ import { CheckIcon, Copy, RefreshCcw } from 'lucide-react';
 
 export type Message = {
   id: string;
-  type: 'user' | 'ai';
+  type: 'user' | 'assistant';
   content: string;
   userMessageId?: string;
   isComplete: boolean;

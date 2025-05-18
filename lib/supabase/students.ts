@@ -1,10 +1,12 @@
+'use server';
 import { Tables } from '@/database.types';
-import { createClient } from '@/lib/supabase/client';
-import { toast } from 'sonner';
+import { createClient } from '@/lib/supabase/server';
 
 // Get the authenticated user's school_id from profiles table
-async function getUserSchoolId(supabase: ReturnType<typeof createClient>) {
+async function getUserSchoolId() {
+  const supabase = await createClient();
   const { data: userData, error: userError } = await supabase.auth.getUser();
+
   if (userError || !userData?.user) {
     throw new Error('User not authenticated');
   }
@@ -24,9 +26,9 @@ async function getUserSchoolId(supabase: ReturnType<typeof createClient>) {
 
 // Create a new student
 export async function createStudent(input: Tables<'students'>) {
-  const supabase = createClient();
+  const supabase = await createClient();
   try {
-    const school_id = await getUserSchoolId(supabase);
+    const school_id = await getUserSchoolId();
 
     const { error } = await supabase.from('students').insert([
       {
@@ -41,13 +43,9 @@ export async function createStudent(input: Tables<'students'>) {
     if (error) {
       throw new Error(error.message);
     }
-
-    toast.success('Student profile added successfully!');
   } catch (error) {
     console.error('Error creating student:', error);
-    toast.error(
-      error instanceof Error ? error.message : 'Failed to add student'
-    );
+
     throw error; // Rethrow to allow caller to handle if needed
   }
 }
@@ -57,7 +55,7 @@ export async function updateStudent(
   studentId: string,
   input: Tables<'students'>
 ) {
-  const supabase = createClient();
+  const supabase = await createClient();
   try {
     const { error } = await supabase
       .from('students')
@@ -72,20 +70,16 @@ export async function updateStudent(
     if (error) {
       throw new Error(error.message);
     }
-
-    toast.success('Student profile updated successfully!');
   } catch (error) {
     console.error('Error updating student:', error);
-    toast.error(
-      error instanceof Error ? error.message : 'Failed to update student'
-    );
+
     throw error;
   }
 }
 
 // Delete a student
 export async function deleteStudent(studentId: string) {
-  const supabase = createClient();
+  const supabase = await createClient();
   try {
     const { error } = await supabase
       .from('students')
@@ -95,13 +89,9 @@ export async function deleteStudent(studentId: string) {
     if (error) {
       throw new Error(error.message);
     }
-
-    toast.success('Student profile deleted successfully!');
   } catch (error) {
     console.error('Error deleting student:', error);
-    toast.error(
-      error instanceof Error ? error.message : 'Failed to delete student'
-    );
+
     throw error;
   }
 }
