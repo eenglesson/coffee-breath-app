@@ -124,7 +124,6 @@ export default function ChatContainer() {
             <ChatMessages
               messages={messages}
               onRedo={redoAnswer}
-              onStop={() => {}} // Empty function since streaming is removed
               messagesEndRef={messagesEndRef}
             />
           </div>

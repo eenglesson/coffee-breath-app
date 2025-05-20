@@ -7,6 +7,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
+import { ModeToggle } from '@/components/ui/toggle-dark-light-mode';
 import { getAuthenticatedProfile } from '@/lib/supabase/server.profiles';
 
 import { redirect } from 'next/navigation';
@@ -24,7 +25,7 @@ export default async function DashboardLayout({
     <SidebarProvider>
       <AppSidebar profile={profile} />
       <SidebarInset>
-        <header className='flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12'>
+        <header className='sticky z-50 bg-background top-0 flex h-16 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 mr-2'>
           <div className='flex items-center gap-2 px-4'>
             <SidebarTrigger className='-ml-1' />
             <Separator
@@ -33,6 +34,7 @@ export default async function DashboardLayout({
             />
             <DynamicBreadCrumb />
           </div>
+          <ModeToggle />
         </header>
         <main className='flex flex-1 flex-col gap-2 p-4 pt-0'>{children}</main>
       </SidebarInset>
