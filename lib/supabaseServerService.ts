@@ -6,7 +6,18 @@ export const supabaseServerService = {
     const { data, error } = await supabase
       .from('students')
       .select('*')
-      .limit(10);
+      .limit(30);
+
+    if (error) {
+      throw new Error(`Error fetching students: ${error.message}`);
+    }
+
+    return data;
+  },
+
+  async getAllStudents() {
+    const supabase = await createClient();
+    const { data, error } = await supabase.from('students').select('*');
 
     if (error) {
       throw new Error(`Error fetching students: ${error.message}`);

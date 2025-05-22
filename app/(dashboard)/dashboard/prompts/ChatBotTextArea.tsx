@@ -8,7 +8,14 @@ import React, { useState, useRef } from 'react';
 import ClassStudentSelector from './ClassStudentSelector';
 
 interface ChatBotTextAreaProps {
-  onSendMessage: (text: string) => void | Promise<void>;
+  onSendMessage: (
+    text: string,
+    selectedStudents: {
+      id: string;
+      interests: string | null;
+      learning_difficulties: string | null;
+    }[]
+  ) => void | Promise<void>;
   isAiResponding: boolean;
 }
 
@@ -17,12 +24,21 @@ export default function ChatBotTextArea({
   isAiResponding,
 }: ChatBotTextAreaProps) {
   const [input, setInput] = useState('');
+  const [selectedStudents, setSelectedStudents] = useState<
+    {
+      id: string;
+      interests: string | null;
+      learning_difficulties: string | null;
+    }[]
+  >([]);
+  console.log('Selected students:', selectedStudents);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = async () => {
     if (input.trim()) {
       try {
-        await onSendMessage(input);
+        await onSendMessage(input, selectedStudents);
         setInput('');
         if (textareaRef.current) {
           textareaRef.current.focus();
@@ -43,7 +59,7 @@ export default function ChatBotTextArea({
   return (
     <div className='flex w-full'>
       <TooltipProvider>
-        <div className='relative border rounded-xl overflow-hidden bg-transparent dark:bg-muted shadow-sm w-full'>
+        <div className='relative border rounded-xl overflow-hidden bg-background dark:bg-muted shadow-sm w-full'>
           <div className='relative'>
             <Textarea
               ref={textareaRef}
@@ -68,26 +84,7 @@ export default function ChatBotTextArea({
               >
                 <LayoutList />
               </Button>
-              {/* <StudentSelector students={fakeStudents} /> */}
-              <ClassStudentSelector />
-              {/* <Tooltip delayDuration={200}>
-                <TooltipTrigger asChild>
-                  <Button
-                    size='icon'
-                    variant='outline'
-                    className='text-muted-foreground rounded-full'
-                    aria-label='Regenerate response'
-                  >
-                    <UsersIcon />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent
-                  sideOffset={4}
-                  className='bg-accent px-3 py-1 text-sm'
-                >
-                  <p className='text-foreground'>Select students</p>
-                </TooltipContent>
-              </Tooltip> */}
+              <ClassStudentSelector setSelectedStudents={setSelectedStudents} />
             </div>
             <Button
               type='button'
@@ -98,7 +95,7 @@ export default function ChatBotTextArea({
                 group rounded-full
                 ${
                   input.trim()
-                    ? 'bg-primary  active:scale-110 hover:scale-110 transition-transform duration-150'
+                    ? 'bg-primary active:scale-110 hover:scale-110 transition-transform duration-150'
                     : 'dark:bg-muted-foreground/10 bg-muted-foreground hover:bg-muted-foreground'
                 }
               `}

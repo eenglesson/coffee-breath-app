@@ -7,6 +7,9 @@ import {
   TooltipTrigger,
 } from '@radix-ui/react-tooltip';
 import { CheckIcon, Copy, RefreshCcw } from 'lucide-react';
+import ReactMarkdown, { Components } from 'react-markdown';
+import hljs from 'highlight.js';
+import 'highlight.js/styles/atom-one-dark.css';
 
 export type Message = {
   id: string;
@@ -21,6 +24,78 @@ interface ChatMessagesProps {
   onRedo: (userMessageId: string) => void;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
 }
+
+const markdownComponents: Components = {
+  h1: ({ ...props }) => (
+    <h1 className='text-2xl font-bold text-foreground mt-4 mb-2' {...props} />
+  ),
+  h2: ({ ...props }) => (
+    <h2
+      className='text-xl font-semibold text-foreground mt-3 mb-2'
+      {...props}
+    />
+  ),
+  h3: ({ ...props }) => (
+    <h3 className='text-lg font-medium text-foreground mt-2 mb-1' {...props} />
+  ),
+  p: ({ ...props }) => (
+    <p className='text-foreground/80 my-2 leading-relaxed' {...props} />
+  ),
+  a: ({ ...props }) => (
+    <a
+      className='text-primary hover:text-primary/80 underline underline-offset-2'
+      target='_blank'
+      rel='noopener noreferrer'
+      {...props}
+    />
+  ),
+  ul: ({ ...props }) => (
+    <ul className='list-disc pl-6 my-2 text-foreground/80' {...props} />
+  ),
+  ol: ({ ...props }) => (
+    <ol className='list-decimal pl-6 my-2 text-foreground/80' {...props} />
+  ),
+  li: ({ ...props }) => <li className='my-1 text-foreground/80' {...props} />,
+  code: ({
+    inline,
+    className,
+    ...props
+  }: {
+    inline?: boolean;
+    className?: string;
+    children?: React.ReactNode;
+  }) => {
+    const language = className?.replace('language-', '') || 'text';
+
+    if (inline) {
+      return (
+        <code
+          className='bg-muted text-foreground/80 px-1 py-0.5 rounded font-mono text-sm'
+          {...props}
+        />
+      );
+    }
+
+    // For block code, use Highlight.js with GitHub Dark theme
+    return (
+      <pre className='bg-muted text-foreground p-4 rounded-md my-2 font-mono text-sm overflow-x-auto'>
+        <code
+          className={`language-${language}`}
+          dangerouslySetInnerHTML={{
+            __html: hljs.highlight(props.children as string, { language })
+              .value,
+          }}
+        />
+      </pre>
+    );
+  },
+  blockquote: ({ ...props }) => (
+    <blockquote
+      className='border-l-4 border-primary bg-muted text-foreground/80 pl-4 py-2 my-2 italic'
+      {...props}
+    />
+  ),
+};
 
 export default function ChatMessages({
   messages,
@@ -92,7 +167,11 @@ function Message({
             </div>
           </>
         ) : (
-          <div dangerouslySetInnerHTML={{ __html: message.content }} />
+          <div className='prose max-w-none'>
+            <ReactMarkdown components={markdownComponents}>
+              {message.content}
+            </ReactMarkdown>
+          </div>
         )}
         {!isUser && isComplete && (
           <CardFooter className='mt-2 p-0 flex gap-1 mb-8'>

@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { updateStudent, deleteStudent } from '@/lib/supabase/students'; // Import reusable functions
+import { updateStudent, deleteStudent } from '@/lib/server.students'; // Import reusable functions
 import { useState } from 'react';
 import { Trash } from 'lucide-react';
 import {
@@ -34,29 +34,7 @@ import {
 } from '@/components/ui/select';
 import { formatName } from '@/app/utils/formatName';
 import { Tables } from '@/database.types';
-
-export const schoolYears = [
-  { value: '0a', label: '0A' },
-  { value: '0b', label: '0B' },
-  { value: '1a', label: '1A' },
-  { value: '1b', label: '1B' },
-  { value: '2a', label: '2A' },
-  { value: '2b', label: '2B' },
-  { value: '3a', label: '3A' },
-  { value: '3b', label: '3B' },
-  { value: '4a', label: '4A' },
-  { value: '4b', label: '4B' },
-  { value: '5a', label: '5A' },
-  { value: '5b', label: '5B' },
-  { value: '6a', label: '6A' },
-  { value: '6b', label: '6B' },
-  { value: '7a', label: '7A' },
-  { value: '7b', label: '7B' },
-  { value: '8a', label: '8A' },
-  { value: '8b', label: '8B' },
-  { value: '9a', label: '9A' },
-  { value: '9b', label: '9B' },
-];
+import { useSchoolYears } from '@/lib/context/SchoolYearContext';
 
 // Define the Zod schema for the form
 const studentSchema = z.object({
@@ -81,7 +59,12 @@ export default function EditStudentDialog({
 }: EditStudentDialogProps) {
   // State for confirmation dialog
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const schoolYears = useSchoolYears();
 
+  const schoolYearOptions = schoolYears.map((year) => ({
+    value: year,
+    label: year.toUpperCase(),
+  }));
   // Initialize the form with zodResolver and pre-populated values
   const form = useForm<z.infer<typeof studentSchema>>({
     resolver: zodResolver(studentSchema),
@@ -170,7 +153,7 @@ export default function EditStudentDialog({
                           <SelectValue placeholder='Select year in school' />
                         </SelectTrigger>
                         <SelectContent className='max-h-[200px] overflow-y-auto z-[1500]'>
-                          {schoolYears.map((year) => (
+                          {schoolYearOptions.map((year) => (
                             <SelectItem key={year.value} value={year.value}>
                               {year.label}
                             </SelectItem>
@@ -246,7 +229,7 @@ export default function EditStudentDialog({
             <DialogDescription>
               Are you sure you want to delete{' '}
               <span className='font-bold'>
-                &ldquo;{student.full_name}&rdquo;
+                &ldquo;{formatName(student.full_name)}&rdquo;
               </span>
               ? This action cannot be undone.
             </DialogDescription>

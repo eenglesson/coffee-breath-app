@@ -1,5 +1,6 @@
+'use server';
 import { redirect } from 'next/navigation';
-import { createClient } from './server';
+import { createClient } from './supabase/server';
 
 export async function getAuthenticatedProfile() {
   const supabase = await createClient();

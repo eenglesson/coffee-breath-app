@@ -46,7 +46,7 @@ export default function StudentList({
           key={student.id}
           className='h-[26rem] hover:shadow-lg ease-in duration-75 2xl:h-[30rem] w-full flex flex-col overflow-hidden pb-0'
         >
-          <CardHeader className='flex justify-between'>
+          <CardHeader className='flex justify-between px-4'>
             <aside>
               <h2 className='text-2xl font-semibold'>
                 {formatName(student.full_name)}
@@ -69,7 +69,7 @@ export default function StudentList({
               <Edit />
             </Button>
           </CardHeader>
-          <CardContent className='flex-1 flex flex-col gap-4 overflow-hidden'>
+          <CardContent className='flex-1 flex flex-col gap-4 overflow-hidden px-4'>
             <aside className='flex-1 flex flex-col'>
               <div className='flex items-center gap-2 mb-1'>
                 <div className='p-1.5 rounded-full bg-secondary'>

@@ -13,7 +13,6 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
-          messages: Json
           student_id: string | null
           teacher_id: string
           updated_at: string | null
@@ -21,7 +20,6 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
-          messages?: Json
           student_id?: string | null
           teacher_id: string
           updated_at?: string | null
@@ -29,7 +27,6 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
-          messages?: Json
           student_id?: string | null
           teacher_id?: string
           updated_at?: string | null
@@ -47,6 +44,38 @@ export type Database = {
             columns: ["teacher_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      message: {
+        Row: {
+          content: string | null
+          conversation_id: string | null
+          created_at: string
+          id: number
+          response: string | null
+        }
+        Insert: {
+          content?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: number
+          response?: string | null
+        }
+        Update: {
+          content?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: number
+          response?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "message_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
         ]
@@ -88,16 +117,19 @@ export type Database = {
           created_at: string
           id: string
           name: string | null
+          school_year: string[]
         }
         Insert: {
           created_at?: string
           id?: string
           name?: string | null
+          school_year?: string[]
         }
         Update: {
           created_at?: string
           id?: string
           name?: string | null
+          school_year?: string[]
         }
         Relationships: []
       }

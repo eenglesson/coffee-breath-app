@@ -28,9 +28,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { schoolYears } from './EditStudentDialog';
-import { createStudent } from '@/lib/supabase/students';
+
+import { createStudent } from '@/lib/server.students';
 import { Tables } from '@/database.types';
+import { useSchoolYears } from '@/lib/context/SchoolYearContext';
 
 // Define the Zod schema for the form
 const studentSchema = z.object({
@@ -46,6 +47,13 @@ interface AddStudentFormProps {
 
 export default function AddStudentDialog({ onClose }: AddStudentFormProps) {
   // Initialize the form with zodResolver and default values
+  const schoolYears = useSchoolYears();
+
+  const schoolYearOptions = schoolYears.map((year) => ({
+    value: year,
+    label: year.toUpperCase(),
+  }));
+
   const form = useForm<z.infer<typeof studentSchema>>({
     resolver: zodResolver(studentSchema),
     defaultValues: {
@@ -77,7 +85,7 @@ export default function AddStudentDialog({ onClose }: AddStudentFormProps) {
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className='sm:max-w-[500px]'>
+      <DialogContent className='sm:max-w-[600px]'>
         <DialogHeader>
           <DialogTitle>Add New Student</DialogTitle>
         </DialogHeader>
@@ -116,7 +124,7 @@ export default function AddStudentDialog({ onClose }: AddStudentFormProps) {
                         <SelectValue placeholder='Select students class' />
                       </SelectTrigger>
                       <SelectContent className='max-h-[200px] overflow-y-auto z-[1500]'>
-                        {schoolYears.map((year) => (
+                        {schoolYearOptions.map((year) => (
                           <SelectItem key={year.value} value={year.value}>
                             {year.label}
                           </SelectItem>
@@ -138,7 +146,7 @@ export default function AddStudentDialog({ onClose }: AddStudentFormProps) {
                     <Textarea
                       placeholder='Enter interests separated by commas (e.g., BMX, skateboarding)'
                       {...field}
-                      className='placeholder:text-sm'
+                      className='h-32 text-sm placeholder:text-sm '
                     />
                   </FormControl>
                   <FormMessage />
@@ -156,7 +164,7 @@ export default function AddStudentDialog({ onClose }: AddStudentFormProps) {
                       placeholder='Enter difficulties separated by commas (e.g., spelling, attention)'
                       {...field}
                       value={field.value || ''}
-                      className='placeholder:text-sm'
+                      className='h-32 text-sm placeholder:text-sm '
                     />
                   </FormControl>
                   <FormMessage />

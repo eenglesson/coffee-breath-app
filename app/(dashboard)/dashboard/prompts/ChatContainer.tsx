@@ -1,4 +1,3 @@
-// components/ChatContainer.tsx
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { v4 as uuidv4 } from 'uuid';
@@ -11,50 +10,89 @@ export type Message = {
   content: string;
   userMessageId?: string;
   isComplete: boolean;
+  student?: {
+    id: string;
+    interests: string | null;
+    learning_difficulties: string | null;
+  };
 };
 
 export default function ChatContainer() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isAiResponding, setIsAiResponding] = useState(false);
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Scroll to the latest message
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const sendMessage = async (text: string) => {
+  const sendMessage = async (
+    text: string,
+    selectedStudents: {
+      id: string;
+      interests: string | null;
+      learning_difficulties: string | null;
+    }[]
+  ) => {
     if (isAiResponding) return;
 
     setIsAiResponding(true);
 
-    const userMessageId = uuidv4();
-    const userMessage: Message = {
-      id: userMessageId,
-      type: 'user',
-      content: text,
-      isComplete: true,
-    };
-    const aiMessageId = uuidv4();
-    const aiMessage: Message = {
-      id: aiMessageId,
-      type: 'assistant',
-      content: '',
-      userMessageId,
-      isComplete: false,
-    };
-    setMessages((prev) => [...prev, userMessage, aiMessage]);
+    // Create messages
+    let newMessages: Message[];
+    let aiMessages: Message[];
+
+    if (selectedStudents.length === 0) {
+      const userMessageId = uuidv4();
+      newMessages = [
+        {
+          id: userMessageId,
+          type: 'user',
+          content: text,
+          isComplete: true,
+        },
+      ];
+      aiMessages = [
+        {
+          id: uuidv4(),
+          type: 'assistant',
+          content: '',
+          userMessageId,
+          isComplete: false,
+        },
+      ];
+    } else {
+      newMessages = selectedStudents.map((student) => ({
+        id: uuidv4(),
+        type: 'user',
+        content: text,
+        isComplete: true,
+        student,
+      }));
+      aiMessages = newMessages.map((userMessage) => ({
+        id: uuidv4(),
+        type: 'assistant',
+        content: '',
+        userMessageId: userMessage.id,
+        isComplete: false,
+      }));
+    }
+
+    setMessages((prev) => [...prev, ...newMessages, ...aiMessages]);
 
     try {
       const response = await fetch('/api/conversation', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt: text, context: messages }),
+        body: JSON.stringify({
+          prompt: text,
+          context: messages,
+          students: selectedStudents,
+        }),
       });
 
       if (!response.ok) {
-        throw new Error('Failed to fetch response');
+        throw new Error(`HTTP error: ${response.status}`);
       }
 
       const data = await response.json();
@@ -62,31 +100,65 @@ export default function ChatContainer() {
         throw new Error(data.error);
       }
 
-      // Parse the assistant's response
-      let parsedResponse;
-      try {
-        parsedResponse = JSON.parse(data.response);
-      } catch (error) {
-        console.error('Failed to parse assistant response:', error);
-        parsedResponse = { content: 'Error: Invalid response format' };
+      if (selectedStudents.length === 0) {
+        let parsedResponse;
+        try {
+          parsedResponse = JSON.parse(data.response);
+          const assistantContent =
+            parsedResponse.content || 'No content available';
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.type === 'assistant' && !msg.isComplete
+                ? { ...msg, content: assistantContent, isComplete: true }
+                : msg
+            )
+          );
+        } catch (error) {
+          console.error('Failed to parse assistant response:', error);
+          throw new Error('Invalid response format');
+        }
+      } else {
+        const assistantResponses: { studentId: string; response: string }[] =
+          data.responses || [];
+        setMessages((prev) =>
+          prev.map((msg) => {
+            if (msg.type === 'assistant' && !msg.isComplete) {
+              const response = assistantResponses.find(
+                (r) =>
+                  r.studentId ===
+                  newMessages.find((m) => m.id === msg.userMessageId)?.student
+                    ?.id
+              );
+              if (response) {
+                let parsedResponse;
+                try {
+                  parsedResponse = JSON.parse(response.response);
+                  const assistantContent =
+                    parsedResponse.content || 'No content available';
+                  return {
+                    ...msg,
+                    content: assistantContent,
+                    isComplete: true,
+                  };
+                } catch (error) {
+                  console.error('Failed to parse assistant response:', error);
+                  return {
+                    ...msg,
+                    content: 'Error: Invalid response format',
+                    isComplete: true,
+                  };
+                }
+              }
+            }
+            return msg;
+          })
+        );
       }
-
-      // Extract the content field
-      const assistantContent = parsedResponse.content || 'No content available';
-
-      // Update AI message with the parsed content
-      setMessages((prev) =>
-        prev.map((msg) =>
-          msg.id === aiMessageId
-            ? { ...msg, content: assistantContent, isComplete: true }
-            : msg
-        )
-      );
     } catch (error) {
       console.error('Error:', error);
       setMessages((prev) =>
         prev.map((msg) =>
-          msg.id === aiMessageId
+          msg.type === 'assistant' && !msg.isComplete
             ? {
                 ...msg,
                 content: 'Error: Failed to fetch response',
@@ -105,7 +177,8 @@ export default function ChatContainer() {
       (msg) => msg.id === userMessageId && msg.type === 'user'
     );
     if (userMessage) {
-      sendMessage(userMessage.content);
+      const students = userMessage.student ? [userMessage.student] : [];
+      sendMessage(userMessage.content, students);
     }
   };
 

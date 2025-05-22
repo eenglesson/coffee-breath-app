@@ -1,7 +1,6 @@
 'use client';
-
 import type React from 'react';
-import { useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { ChevronDown, ChevronRight, Users } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
@@ -20,11 +19,15 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { cn } from '@/lib/utils';
+import { getAllStudents } from '@/lib/client.student';
+import { Tables } from '@/database.types';
 
 // Define types for our data structure
 type Student = {
   id: string;
   name: string;
+  interests: string | null;
+  learning_difficulties: string | null;
 };
 
 type Class = {
@@ -33,38 +36,19 @@ type Class = {
   students: Student[];
 };
 
-// Sample data
-const classes: Class[] = [
-  {
-    id: 'class-1',
-    name: 'Mathematics 101',
-    students: [
-      { id: 'student-1', name: 'Jenny Hamilton' },
-      { id: 'student-2', name: 'Paul Smith' },
-      { id: 'student-3', name: 'Luna Wyen' },
-    ],
-  },
-  {
-    id: 'class-2',
-    name: 'Programming',
-    students: [
-      { id: 'student-4', name: 'Alex Johnson' },
-      { id: 'student-5', name: 'Maria Garcia' },
-    ],
-  },
-  {
-    id: 'class-3',
-    name: 'Physics 303',
-    students: [
-      { id: 'student-6', name: 'David Lee' },
-      { id: 'student-7', name: 'Sarah Brown' },
-      { id: 'student-8', name: 'James Wilson' },
-      { id: 'student-9', name: 'Emma Davis' },
-    ],
-  },
-];
+interface ClassStudentSelectorProps {
+  setSelectedStudents: (
+    students: {
+      id: string;
+      interests: string | null;
+      learning_difficulties: string | null;
+    }[]
+  ) => void;
+}
 
-export default function ClassStudentSelector() {
+export default function ClassStudentSelector({
+  setSelectedStudents,
+}: ClassStudentSelectorProps) {
   // State for expanded classes
   const [expandedClasses, setExpandedClasses] = useState<
     Record<string, boolean>
@@ -79,7 +63,56 @@ export default function ClassStudentSelector() {
     students: {},
   });
 
-  // State for dropdown open/close
+  const [students, setStudents] = useState<Tables<'students'>[]>([]);
+
+  // Fetch students from the database
+  useEffect(() => {
+    async function fetchStudents() {
+      try {
+        const data = await getAllStudents();
+        setStudents(data);
+      } catch (err) {
+        console.error('Error fetching students:', err);
+      }
+    }
+
+    fetchStudents();
+  }, []);
+
+  // Compute classes from fetched students by grouping them by school_year
+  const classes = useMemo(() => {
+    const grouped = students.reduce((acc, student) => {
+      const schoolYear = student.school_year || 'Unknown';
+      if (!acc[schoolYear]) {
+        acc[schoolYear] = {
+          id: schoolYear,
+          name: `Class ${schoolYear.toLocaleUpperCase()}`,
+          students: [],
+        };
+      }
+      acc[schoolYear].students.push({
+        id: student.id,
+        name: student.full_name || 'Unnamed',
+        interests: student.interests,
+        learning_difficulties: student.learning_difficulties,
+      });
+      return acc;
+    }, {} as Record<string, Class>);
+    return Object.values(grouped);
+  }, [students]);
+
+  // Update parent component with selected student data
+  useEffect(() => {
+    const selectedStudentData = classes
+      .flatMap((classItem) => classItem.students)
+      .filter((student) => selectedItems.students[student.id])
+      .map(({ id, interests, learning_difficulties }) => ({
+        id,
+        interests,
+        learning_difficulties,
+      }));
+    setSelectedStudents(selectedStudentData);
+  }, [selectedItems.students, classes, setSelectedStudents]);
 
   // Toggle class expansion
   const toggleClass = (classId: string, e: React.MouseEvent) => {
@@ -100,10 +133,7 @@ export default function ClassStudentSelector() {
       [classItem.id]: !isCurrentlySelected,
     };
 
-    // If selecting a class, select all its students
-    // If deselecting a class, deselect all its students
     const newStudentSelection = { ...selectedItems.students };
-
     classItem.students.forEach((student) => {
       newStudentSelection[student.id] = !isCurrentlySelected;
     });
@@ -127,7 +157,6 @@ export default function ClassStudentSelector() {
       [studentId]: !selectedItems.students[studentId],
     };
 
-    // Check if all students in the class are selected
     const classStudents = classes.find((c) => c.id === classId)?.students || [];
     const allStudentsSelected = classStudents.every(
       (student) => newStudentSelection[student.id]
@@ -203,13 +232,6 @@ export default function ClassStudentSelector() {
                   <h3 className='text-body font-medium text-foreground'>
                     Select Students
                   </h3>
-
-                  {/* <Input
-                          type='text'
-                          placeholder='Search...'
-                          className='w-full h-8'
-                          onChange={(e) => console.log(e.target.value)}
-                        /> */}
                   <Button
                     variant='ghost'
                     size='sm'
@@ -225,7 +247,6 @@ export default function ClassStudentSelector() {
                       key={classItem.id}
                       className='rounded-sm mb-1 last:mb-0'
                     >
-                      {/* Class header */}
                       <div
                         className={cn(
                           'flex items-center px-2 py-2 hover:bg-accent hover:text-accent-foreground cursor-default rounded-sm',
@@ -233,7 +254,6 @@ export default function ClassStudentSelector() {
                         )}
                         onClick={(e) => toggleClass(classItem.id, e)}
                       >
-                        {/* Class checkbox */}
                         <Checkbox
                           id={`class-${classItem.id}`}
                           checked={!!selectedItems.classes[classItem.id]}
@@ -243,8 +263,6 @@ export default function ClassStudentSelector() {
                           onClick={(e) => e.stopPropagation()}
                           className='mr-2 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground'
                         />
-
-                        {/* Expand/collapse icon */}
                         <div
                           className='mr-2'
                           onClick={(e) => toggleClass(classItem.id, e)}
@@ -255,13 +273,9 @@ export default function ClassStudentSelector() {
                             <ChevronRight className='h-4 w-4 text-muted-foreground' />
                           )}
                         </div>
-
-                        {/* Class name */}
                         <span className='font-medium text-sm flex-1 text-foreground'>
                           {classItem.name}
                         </span>
-
-                        {/* Selection counter */}
                         <Badge
                           variant={
                             getSelectedStudentCount(classItem) > 0
@@ -274,8 +288,6 @@ export default function ClassStudentSelector() {
                           {classItem.students.length}
                         </Badge>
                       </div>
-
-                      {/* Students list (shown when class is expanded) */}
                       {expandedClasses[classItem.id] && (
                         <div className='pl-9 pr-2 space-y-1 mt-1 mb-2'>
                           {classItem.students.map((student) => (
@@ -290,7 +302,6 @@ export default function ClassStudentSelector() {
                                 toggleStudentSelection(student.id, classItem.id)
                               }
                             >
-                              {/* Student checkbox */}
                               <Checkbox
                                 id={`student-${student.id}`}
                                 checked={!!selectedItems.students[student.id]}
@@ -303,8 +314,6 @@ export default function ClassStudentSelector() {
                                 onClick={(e) => e.stopPropagation()}
                                 className='mr-2 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground'
                               />
-
-                              {/* Student info - only name */}
                               <div className='font-medium text-sm text-foreground'>
                                 {student.name}
                               </div>
