@@ -27,35 +27,40 @@ interface ChatMessagesProps {
 
 const markdownComponents: Components = {
   h1: ({ ...props }) => (
-    <h1 className='text-2xl font-bold text-foreground mt-4 mb-2' {...props} />
+    <h1 className='text-3xl font-bold text-foreground mt-6 mb-3' {...props} />
   ),
   h2: ({ ...props }) => (
     <h2
-      className='text-xl font-semibold text-foreground mt-3 mb-2'
+      className='text-2xl font-semibold text-foreground mt-5 mb-3 border-b border-foreground/20 pb-1'
       {...props}
     />
   ),
   h3: ({ ...props }) => (
-    <h3 className='text-lg font-medium text-foreground mt-2 mb-1' {...props} />
+    <h3 className='text-2xl font-medium text-foreground mt-4 mb-2' {...props} />
   ),
   p: ({ ...props }) => (
-    <p className='text-foreground/80 my-2 leading-relaxed' {...props} />
+    <p
+      className='text-foreground text-base font-medium my-3 leading-relaxed'
+      {...props}
+    />
   ),
   a: ({ ...props }) => (
     <a
-      className='text-primary hover:text-primary/80 underline underline-offset-2'
+      className='text-primary hover:text-green-600 underline underline-offset-4 font-medium'
       target='_blank'
       rel='noopener noreferrer'
       {...props}
     />
   ),
   ul: ({ ...props }) => (
-    <ul className='list-disc pl-6 my-2 text-foreground/80' {...props} />
+    <ul className='list-disc pl-8 my-3 text-muted ' {...props} />
   ),
   ol: ({ ...props }) => (
-    <ol className='list-decimal pl-6 my-2 text-foreground/80' {...props} />
+    <ol className='list-decimal pl-8 my-3 text-muted font-medium' {...props} />
   ),
-  li: ({ ...props }) => <li className='my-1 text-foreground/80' {...props} />,
+  li: ({ ...props }) => (
+    <li className='my-2 text-card-foreground text-base' {...props} />
+  ),
   code: ({
     inline,
     className,
@@ -70,15 +75,14 @@ const markdownComponents: Components = {
     if (inline) {
       return (
         <code
-          className='bg-muted text-foreground/80 px-1 py-0.5 rounded font-mono text-sm'
+          className='bg-muted text-foreground px-1.5 py-0.5 rounded-md font-mono text-sm font-medium'
           {...props}
         />
       );
     }
 
-    // For block code, use Highlight.js with GitHub Dark theme
     return (
-      <pre className='bg-muted text-foreground p-4 rounded-md my-2 font-mono text-sm overflow-x-auto'>
+      <pre className='bg-muted text-foreground p-4 rounded-lg my-3 font-mono text-sm overflow-x-auto'>
         <code
           className={`language-${language}`}
           dangerouslySetInnerHTML={{
@@ -91,7 +95,7 @@ const markdownComponents: Components = {
   },
   blockquote: ({ ...props }) => (
     <blockquote
-      className='border-l-4 border-primary bg-muted text-foreground/80 pl-4 py-2 my-2 italic'
+      className='border-l-4 border-primary bg-muted/50 text-foreground pl-4 py-3 my-3 font-medium'
       {...props}
     />
   ),
