@@ -9,6 +9,7 @@ import {
 } from '@/components/ui/sidebar';
 import { ModeToggle } from '@/components/ui/toggle-dark-light-mode';
 import { SchoolYearsProvider } from '@/lib/context/SchoolYearContext';
+
 import { getAuthenticatedProfile } from '@/lib/server.profiles';
 import { getSchoolYears } from '@/lib/server.schools';
 

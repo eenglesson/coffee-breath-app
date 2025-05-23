@@ -21,6 +21,7 @@ import {
 import { cn } from '@/lib/utils';
 import { getAllStudents } from '@/lib/client.student';
 import { Tables } from '@/database.types';
+import { formatName } from '@/app/utils/formatName';
 
 // Define types for our data structure
 type Student = {
@@ -28,6 +29,7 @@ type Student = {
   name: string;
   interests: string | null;
   learning_difficulties: string | null;
+  school_year: string | null;
 };
 
 type Class = {
@@ -42,6 +44,7 @@ interface ClassStudentSelectorProps {
       id: string;
       interests: string | null;
       learning_difficulties: string | null;
+      school_year: string | null;
     }[]
   ) => void;
 }
@@ -95,6 +98,7 @@ export default function ClassStudentSelector({
         name: student.full_name || 'Unnamed',
         interests: student.interests,
         learning_difficulties: student.learning_difficulties,
+        school_year: student.school_year,
       });
       return acc;
     }, {} as Record<string, Class>);
@@ -106,10 +110,11 @@ export default function ClassStudentSelector({
     const selectedStudentData = classes
       .flatMap((classItem) => classItem.students)
       .filter((student) => selectedItems.students[student.id])
-      .map(({ id, interests, learning_difficulties }) => ({
+      .map(({ id, interests, learning_difficulties, school_year }) => ({
         id,
         interests,
         learning_difficulties,
+        school_year,
       }));
     setSelectedStudents(selectedStudentData);
   }, [selectedItems.students, classes, setSelectedStudents]);
@@ -220,7 +225,7 @@ export default function ClassStudentSelector({
 
               <TooltipContent
                 sideOffset={4}
-                className='bg-popover px-3 py-1 text-sm'
+                className='dark:bg-popover bg-accent px-3 py-1 text-sm'
               >
                 <p className='text-foreground'>Select students</p>
               </TooltipContent>
@@ -315,7 +320,7 @@ export default function ClassStudentSelector({
                                 className='mr-2 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground'
                               />
                               <div className='font-medium text-sm text-foreground'>
-                                {student.name}
+                                {formatName(student.name)}
                               </div>
                             </div>
                           ))}

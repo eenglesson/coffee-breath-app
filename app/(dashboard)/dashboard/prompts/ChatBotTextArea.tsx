@@ -14,6 +14,7 @@ interface ChatBotTextAreaProps {
       id: string;
       interests: string | null;
       learning_difficulties: string | null;
+      school_year: string | null;
     }[]
   ) => void | Promise<void>;
   isAiResponding: boolean;
@@ -29,6 +30,7 @@ export default function ChatBotTextArea({
       id: string;
       interests: string | null;
       learning_difficulties: string | null;
+      school_year: string | null;
     }[]
   >([]);
   console.log('Selected students:', selectedStudents);

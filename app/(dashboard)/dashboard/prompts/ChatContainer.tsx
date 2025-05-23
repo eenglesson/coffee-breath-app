@@ -14,6 +14,7 @@ export type Message = {
     id: string;
     interests: string | null;
     learning_difficulties: string | null;
+    school_year: string | null;
   };
 };
 
@@ -32,13 +33,14 @@ export default function ChatContainer() {
       id: string;
       interests: string | null;
       learning_difficulties: string | null;
+      school_year: string | null;
     }[]
   ) => {
     if (isAiResponding) return;
 
     setIsAiResponding(true);
 
-    // Create messages
+    // Create messages (unchanged)
     let newMessages: Message[];
     let aiMessages: Message[];
 
@@ -100,24 +102,19 @@ export default function ChatContainer() {
         throw new Error(data.error);
       }
 
+      // Case 1: No students selected
       if (selectedStudents.length === 0) {
-        let parsedResponse;
-        try {
-          parsedResponse = JSON.parse(data.response);
-          const assistantContent =
-            parsedResponse.content || 'No content available';
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.type === 'assistant' && !msg.isComplete
-                ? { ...msg, content: assistantContent, isComplete: true }
-                : msg
-            )
-          );
-        } catch (error) {
-          console.error('Failed to parse assistant response:', error);
-          throw new Error('Invalid response format');
-        }
-      } else {
+        const assistantContent = data.response || 'No content available';
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.type === 'assistant' && !msg.isComplete
+              ? { ...msg, content: assistantContent, isComplete: true }
+              : msg
+          )
+        );
+      }
+      // Case 2: Students selected
+      else {
         const assistantResponses: { studentId: string; response: string }[] =
           data.responses || [];
         setMessages((prev) =>
@@ -130,24 +127,13 @@ export default function ChatContainer() {
                     ?.id
               );
               if (response) {
-                let parsedResponse;
-                try {
-                  parsedResponse = JSON.parse(response.response);
-                  const assistantContent =
-                    parsedResponse.content || 'No content available';
-                  return {
-                    ...msg,
-                    content: assistantContent,
-                    isComplete: true,
-                  };
-                } catch (error) {
-                  console.error('Failed to parse assistant response:', error);
-                  return {
-                    ...msg,
-                    content: 'Error: Invalid response format',
-                    isComplete: true,
-                  };
-                }
+                const assistantContent =
+                  response.response || 'No content available';
+                return {
+                  ...msg,
+                  content: assistantContent,
+                  isComplete: true,
+                };
               }
             }
             return msg;
