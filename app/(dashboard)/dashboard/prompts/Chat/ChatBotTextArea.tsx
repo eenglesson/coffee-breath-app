@@ -1,30 +1,39 @@
+// app/ChatBotTextArea.tsx
+
 'use client';
+
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { ArrowUp, LayoutList } from 'lucide-react';
 import React, { useState, useRef } from 'react';
-
 import ClassStudentSelector from './ClassStudentSelector';
 
 interface ChatBotTextAreaProps {
-  onSendMessage: (
-    text: string,
-    selectedStudents: {
-      id: string;
-      interests: string | null;
-      learning_difficulties: string | null;
-      school_year: string | null;
-    }[]
-  ) => void | Promise<void>;
-  isAiResponding: boolean;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onSubmit: (
+    e: React.FormEvent,
+    options?: {
+      body?: {
+        selectedStudents: {
+          id: string;
+          interests: string | null;
+          learning_difficulties: string | null;
+          school_year: string | null;
+        }[];
+      };
+    }
+  ) => void;
+  isAiResponding?: boolean;
 }
 
 export default function ChatBotTextArea({
-  onSendMessage,
-  isAiResponding,
+  value,
+  onChange,
+  onSubmit,
+  isAiResponding = false,
 }: ChatBotTextAreaProps) {
-  const [input, setInput] = useState('');
   const [selectedStudents, setSelectedStudents] = useState<
     {
       id: string;
@@ -33,15 +42,15 @@ export default function ChatBotTextArea({
       school_year: string | null;
     }[]
   >([]);
-  console.log('Selected students:', selectedStudents);
-
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const handleSubmit = async () => {
-    if (input.trim()) {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (value.trim()) {
       try {
-        await onSendMessage(input, selectedStudents);
-        setInput('');
+        await onSubmit(e, {
+          body: { selectedStudents }, // Pass selectedStudents in the request body
+        });
         if (textareaRef.current) {
           textareaRef.current.focus();
         }
@@ -54,7 +63,7 @@ export default function ChatBotTextArea({
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit();
+      handleSubmit(e);
     }
   };
 
@@ -65,11 +74,11 @@ export default function ChatBotTextArea({
           <div className='relative'>
             <Textarea
               ref={textareaRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
+              value={value}
+              onChange={onChange}
               onKeyDown={handleKeyDown}
-              className='w-full p-4 border-none resize-none h-24 shadow-none overflow-y-auto hide-scrollbar focus:ring-0 focus-visible:ring-0 dark:bg-transparent bg-transparent'
-              placeholder='Type your text here...'
+              className='w-full  p-4 border-none resize-none h-24 shadow-none overflow-y-auto hide-scrollbar focus:ring-0 focus-visible:ring-0 dark:bg-transparent bg-transparent'
+              placeholder='Ask Coffee Breath anything...'
               aria-label='Message input'
               style={{ whiteSpace: 'pre-wrap' }}
             />
@@ -96,7 +105,7 @@ export default function ChatBotTextArea({
               className={`
                 group rounded-full
                 ${
-                  input.trim()
+                  value.trim()
                     ? 'bg-primary active:scale-110 hover:scale-110 transition-transform duration-150'
                     : 'dark:bg-muted-foreground/10 bg-muted-foreground hover:bg-muted-foreground'
                 }
