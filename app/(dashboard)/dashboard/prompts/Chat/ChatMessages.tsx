@@ -68,7 +68,7 @@ function Message({
           </MessageContent>
         )}
         <CardFooter
-          className={`mt-2 p-0 flex gap-2 ${
+          className={`mt-1 p-0 flex gap-2 ${
             isUser ? 'justify-end' : 'justify-start'
           }`}
         >
@@ -126,7 +126,7 @@ function Message({
               sideOffset={4}
               className='bg-accent px-3 py-1 text-sm rounded-full'
             >
-              <p>{copied ? 'Copied!' : 'Copy'}</p>
+              <p className='text-foreground'>{copied ? 'Copied!' : 'Copy'}</p>
             </TooltipContent>
           </Tooltip>
         </CardFooter>

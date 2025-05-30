@@ -48,6 +48,7 @@
     "embla-carousel-react": "^8.6.0",
     "highlight.js": "^11.11.1",
     "lucide-react": "^0.487.0",
+    "mammoth": "^1.9.1",
     "marked-react": "^3.0.0",
     "motion": "^12.9.4",
     "next": "^15.3.0",

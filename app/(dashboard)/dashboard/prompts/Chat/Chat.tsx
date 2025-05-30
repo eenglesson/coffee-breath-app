@@ -1,9 +1,7 @@
 'use client';
-
 import ChatBotTextArea from './ChatBotTextArea';
 import { useChat } from '@ai-sdk/react';
-
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import ChatMessages, { Message } from './ChatMessages';
 
 export default function Chat() {
@@ -16,6 +14,9 @@ export default function Chat() {
     }[]
   >([]);
 
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const chatContainerRef = useRef<HTMLDivElement>(null);
+
   const {
     messages,
     input,
@@ -27,6 +28,22 @@ export default function Chat() {
     api: '/api/chat',
     body: { selectedStudents }, // Include selectedStudents in every API request
   });
+
+  // Scroll to bottom when messages change
+  const scrollToBottom = () => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
+  // Only scroll when new messages are added, not on every change
+  const prevMessagesLength = useRef(0);
+  useEffect(() => {
+    if (messages.length > prevMessagesLength.current) {
+      scrollToBottom();
+      prevMessagesLength.current = messages.length;
+    }
+  }, [messages]);
 
   // Custom handleSubmit to pass selectedStudents
   const handleSubmit = (
@@ -48,6 +65,8 @@ export default function Chat() {
     originalHandleSubmit(e, {
       body: { selectedStudents: options?.body?.selectedStudents || [] },
     });
+
+    // Remove the setTimeout since useEffect will handle scrolling
   };
 
   // Map AI SDK messages to ChatMessages' Message type
@@ -86,9 +105,9 @@ export default function Chat() {
   };
 
   return (
-    <section className='w-full max-w-4xl'>
+    <section className='w-full max-w-4xl h-full flex flex-col'>
       {messages.length === 0 ? (
-        <div className='flex flex-col items-center justify-center h-full p-4'>
+        <div className='flex flex-col items-center justify-center h-full'>
           <ChatBotTextArea
             value={input}
             onChange={handleInputChange}
@@ -97,9 +116,12 @@ export default function Chat() {
           />
         </div>
       ) : (
-        <div>
-          <ChatMessages messages={formattedMessages} onRedo={handleRedo} />
-          <div className='sticky bottom-4 left-0 right-0 mt-6'>
+        <div className='flex flex-col h-full'>
+          <div ref={chatContainerRef} className='flex-1 overflow-y-auto pb-4'>
+            <ChatMessages messages={formattedMessages} onRedo={handleRedo} />
+            <div ref={messagesEndRef} />
+          </div>
+          <div className='sticky bottom-4 bg-background/80 backdrop-blur-sm pt-4'>
             <ChatBotTextArea
               value={input}
               onChange={handleInputChange}
