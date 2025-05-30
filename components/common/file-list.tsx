@@ -24,7 +24,7 @@ export function FileList({ files, onFileRemove }: FileListProps) {
           transition={TRANSITION}
           className='overflow-hidden'
         >
-          <div className='flex flex-row overflow-x-auto pl-2'>
+          <div className='flex flex-row overflow-x-auto pl-3 pt-1  pr-1 hide-scrollbar'>
             <AnimatePresence initial={false}>
               {files.map((file) => (
                 <motion.div

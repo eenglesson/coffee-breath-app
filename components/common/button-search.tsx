@@ -37,11 +37,11 @@ export function ButtonSearch({
 
   return (
     <Button
-      variant='secondary'
+      variant='outline'
       className={cn(
         'rounded-full text-muted-foreground hover:text-foreground border border-border transition-all duration-150',
         isSelected &&
-          '!border-[#0091FF]/30  !text-[#0091FF] hover:!text-[#0091FF]'
+          '!border-[#0091FF]/30  !text-[#0091FF] hover:!text-[#0091FF] !bg-[#0091FF]/10'
       )}
       onClick={handleClick}
     >

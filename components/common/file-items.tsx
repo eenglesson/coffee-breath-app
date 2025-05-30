@@ -35,7 +35,7 @@ export function FileItem({ file, onRemove }: FileItemProps) {
         onOpenChange={setIsOpen}
       >
         <HoverCardTrigger className='w-full'>
-          <div className='bg-background hover:bg-accent border-input flex w-full items-center gap-3 rounded-2xl border p-2 pr-3 transition-colors'>
+          <div className='bg-background hover:bg-accent border-input flex w-full items-center gap-3 rounded-2xl border p-2  transition-colors'>
             <div className='flex h-10 w-10 flex-shrink-0 items-center justify-center overflow-hidden rounded-md'>
               {file.type.includes('image') ? (
                 <img
@@ -60,6 +60,10 @@ export function FileItem({ file, onRemove }: FileItemProps) {
           </div>
         </HoverCardTrigger>
         <HoverCardContent side='top'>
+          <div className='text-xs font-medium truncate'>{file.name}</div>
+          <div className='text-xs text-gray-500 mb-2'>
+            {(file.size / 1024).toFixed(2)} kB
+          </div>
           <img
             src={URL.createObjectURL(file)}
             alt={file.name}

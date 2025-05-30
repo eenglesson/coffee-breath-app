@@ -45,7 +45,7 @@ export default async function DashboardLayout({
             </div>
             <ModeToggle />
           </header>
-          <main className='flex flex-1 flex-col gap-2 p-4 pt-0'>
+          <main className='flex flex-1 flex-col gap-2 p-2 pt-0'>
             {children}
           </main>
         </SidebarInset>

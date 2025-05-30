@@ -91,7 +91,7 @@ export function ButtonFileUpload({
       onFilesAdded={onFileUpload}
       multiple
       disabled={!isUserAuthenticated}
-      accept='.txt,.md,.doc,.docx,.pdf,.rtf,.odt,.pages,text/plain,text/markdown,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/rtf,application/vnd.oasis.opendocument.text,image/jpeg,image/png,image/gif,image/webp,image/svg,image/heic,image/heif'
+      accept='.txt,.md,.doc,.docx,.pdf,.pages,text/plain,text/markdown,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/rtf,application/vnd.oasis.opendocument.text,image/jpeg,image/png,image/gif,image/webp,image/svg,image/heic,image/heif'
     >
       <Tooltip>
         <TooltipTrigger asChild>
@@ -121,7 +121,7 @@ export function ButtonFileUpload({
             Drop documents, PDFs, or images here to add them to the conversation
           </span>
           <div className='mt-2 text-xs text-muted-foreground'>
-            Supported: TXT, MD, DOC, DOCX, PDF, RTF, ODT, Images
+            Supported: TXT, MD, DOC, DOCX, PDF, Images
           </div>
         </div>
       </FileUploadContent>
