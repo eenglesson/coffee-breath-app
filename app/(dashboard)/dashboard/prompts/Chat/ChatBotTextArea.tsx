@@ -29,7 +29,6 @@ interface ChatBotTextAreaProps {
       };
     }
   ) => void;
-  isAiResponding?: boolean;
   isUserAuthenticated?: boolean;
   model?: string;
 }
@@ -38,7 +37,6 @@ export default function ChatBotTextArea({
   value,
   onChange,
   onSubmit,
-  isAiResponding = false,
   isUserAuthenticated = true,
   model = 'default',
 }: ChatBotTextAreaProps) {
@@ -75,7 +73,7 @@ export default function ChatBotTextArea({
     e.preventDefault();
     if (value.trim() || uploadedFiles.length > 0) {
       try {
-        await onSubmit(e, {
+        onSubmit(e, {
           body: {
             selectedStudents,
             uploadedFiles,
@@ -139,7 +137,6 @@ export default function ChatBotTextArea({
               type='button'
               size='icon'
               onClick={handleSubmit}
-              disabled={isAiResponding}
               className={`
                 group rounded-full transition-all duration-150
                 ${

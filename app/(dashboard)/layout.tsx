@@ -7,7 +7,6 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { ModeToggle } from '@/components/ui/toggle-dark-light-mode';
 import { SchoolYearsProvider } from '@/lib/context/SchoolYearContext';
 
 import { getAuthenticatedProfile } from '@/lib/server.profiles';
@@ -43,9 +42,8 @@ export default async function DashboardLayout({
               />
               <DynamicBreadCrumb />
             </div>
-            <ModeToggle />
           </header>
-          <main className='flex flex-1 flex-col gap-2 p-2 pt-0'>
+          <main className='flex flex-1 flex-col gap-2 p-2 sm:p-4 pt-0'>
             {children}
           </main>
         </SidebarInset>

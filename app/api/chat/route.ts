@@ -1,12 +1,12 @@
+// app/api/chat/route.ts
 import { streamText } from 'ai';
 import { xai } from '@ai-sdk/xai';
 import { chatbotPrompt } from '@/lib/prompts/chatbot';
+import { adaptQuestionsForStudentsTool } from '@/lib/tools/questionAdapter';
 
 export async function POST(req: Request) {
-  // Extract messages and selectedStudents from the request body
-  const { messages, selectedStudents } = await req.json();
+  const { messages, selectedStudents, searchEnabled } = await req.json();
 
-  // Generate context from selectedStudents
   let studentContext = '';
   if (selectedStudents?.length > 0) {
     studentContext =
@@ -14,11 +14,15 @@ export async function POST(req: Request) {
     selectedStudents.forEach(
       (student: {
         id: string;
+        name?: string;
         interests: string | null;
         learning_difficulties: string | null;
         school_year: string | null;
       }) => {
         studentContext += `- Student ID: ${student.id}\n`;
+        studentContext += `  Name: ${
+          student.name || 'Student ' + student.id
+        }\n`;
         studentContext += `  School Year: ${
           student.school_year || 'Not specified'
         }\n`;
@@ -27,31 +31,56 @@ export async function POST(req: Request) {
         }\n`;
         studentContext += `  Learning Difficulties: ${
           student.learning_difficulties || 'None provided'
-        }\n`;
+        }\n\n`;
       }
     );
-    studentContext +=
-      'Use this information to tailor responses, such as creating questions or explanations that align with the students’ interests, accommodate their learning difficulties, and are appropriate for their school year.\n';
+    studentContext += `
+IMPORTANT: When the user asks to adapt, customize, or theme questions for these students, you MUST use the adaptQuestionsForStudents tool. 
+
+The tool expects:
+- originalQuestions: Array of question strings from the conversation
+- students: Array of student objects with adaptedQuestions
+- adaptationFocus: Brief description of the adaptation approach
+
+For each student, create thoughtful adaptations considering their:
+- Interests (incorporate themes they enjoy)
+- Learning difficulties (provide appropriate accommodations)
+- Grade level (adjust complexity appropriately)
+- Individual learning needs
+
+Make sure each adaptation includes:
+- original: The original question text
+- adapted: The modified question for this specific student
+- explanation: Clear reasoning for why this adaptation helps this student
+- subject: Subject area if applicable
+- difficulty: Appropriate difficulty level
+
+Use this information to tailor responses, such as creating questions or explanations that align with the students' interests, accommodate their learning difficulties, and are appropriate for their school year.\n`;
   }
 
-  // Combine chatbotPrompt with studentContext
   const systemPrompt = studentContext
     ? `${chatbotPrompt}\n\n${studentContext}`
     : chatbotPrompt;
 
-  // Get a language model
   const model = xai('grok-3-mini-latest');
 
-  // Call the language model with the prompt
   const result = streamText({
     model,
     messages,
     system: systemPrompt,
+
+    tools: {
+      adaptQuestionsForStudents: adaptQuestionsForStudentsTool,
+    },
+    providerOptions: {
+      xai:{
+        mode
+      }
+
     maxTokens: 8192,
     temperature: 0.7,
     topP: 1,
   });
 
-  // Respond with a streaming response
   return result.toDataStreamResponse();
 }

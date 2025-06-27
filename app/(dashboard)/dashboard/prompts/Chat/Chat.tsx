@@ -65,8 +65,6 @@ export default function Chat() {
     originalHandleSubmit(e, {
       body: { selectedStudents: options?.body?.selectedStudents || [] },
     });
-
-    // Remove the setTimeout since useEffect will handle scrolling
   };
 
   // Map AI SDK messages to ChatMessages' Message type
@@ -79,6 +77,7 @@ export default function Chat() {
         ? messages[index - 1]?.id
         : undefined,
     isComplete: true,
+    toolInvocations: msg.toolInvocations,
   }));
 
   const handleRedo = (userMessageId: string) => {
@@ -105,14 +104,13 @@ export default function Chat() {
   };
 
   return (
-    <section className='w-full max-w-4xl h-full flex flex-col'>
+    <section className='w-full max-w-5xl h-full flex flex-col'>
       {messages.length === 0 ? (
         <div className='flex flex-col items-center justify-center h-full'>
           <ChatBotTextArea
             value={input}
             onChange={handleInputChange}
             onSubmit={handleSubmit}
-            isAiResponding={messages[messages.length - 1]?.role === 'assistant'}
           />
         </div>
       ) : (
@@ -121,14 +119,11 @@ export default function Chat() {
             <ChatMessages messages={formattedMessages} onRedo={handleRedo} />
             <div ref={messagesEndRef} />
           </div>
-          <div className='sticky bottom-4 bg-background/80 backdrop-blur-sm pt-4'>
+          <div className='sticky bottom-4'>
             <ChatBotTextArea
               value={input}
               onChange={handleInputChange}
               onSubmit={handleSubmit}
-              isAiResponding={
-                messages[messages.length - 1]?.role === 'assistant'
-              }
             />
           </div>
         </div>

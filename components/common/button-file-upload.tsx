@@ -100,7 +100,7 @@ export function ButtonFileUpload({
               size='sm'
               variant='outline'
               className={cn(
-                'border-border dark:bg-secondary text-muted-foreground size-9 rounded-full border bg-transparent',
+                'border-border text-muted-foreground size-9 rounded-full border bg-transparent',
                 !isUserAuthenticated && 'opacity-50'
               )}
               type='button'
@@ -111,7 +111,7 @@ export function ButtonFileUpload({
             </Button>
           </FileUploadTrigger>
         </TooltipTrigger>
-        <TooltipContent>Add files (documents, PDFs, images)</TooltipContent>
+        <TooltipContent>Add files (documents, PDFs)</TooltipContent>
       </Tooltip>
       <FileUploadContent>
         <div className='border-input bg-background flex flex-col items-center rounded-lg border border-dashed p-8'>

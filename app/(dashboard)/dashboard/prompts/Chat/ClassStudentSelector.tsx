@@ -258,7 +258,7 @@ export default function ClassStudentSelector({
               <Button
                 id='class-selector'
                 variant='outline'
-                className='text-muted-foreground dark:bg-secondary rounded-full w-fit transition-all duration-200 hover:bg-accent'
+                className='text-muted-foreground rounded-full w-fit transition-all duration-200 hover:bg-accent'
               >
                 <Users className='h-4 w-4' />
                 <span className='font-medium'>
