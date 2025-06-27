@@ -5,7 +5,7 @@ import { chatbotPrompt } from '@/lib/prompts/chatbot';
 import { adaptQuestionsForStudentsTool } from '@/lib/tools/questionAdapter';
 
 export async function POST(req: Request) {
-  const { messages, selectedStudents, searchEnabled } = await req.json();
+  const { messages, selectedStudents } = await req.json();
 
   let studentContext = '';
   if (selectedStudents?.length > 0) {
@@ -72,10 +72,6 @@ Use this information to tailor responses, such as creating questions or explanat
     tools: {
       adaptQuestionsForStudents: adaptQuestionsForStudentsTool,
     },
-    providerOptions: {
-      xai:{
-        mode
-      }
 
     maxTokens: 8192,
     temperature: 0.7,
