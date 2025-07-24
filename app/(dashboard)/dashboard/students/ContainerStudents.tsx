@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useRef } from 'react';
 import SearchSection from './SearchSection';
 import StudentList from './StudentList';
 import { Tables } from '@/database.types';
@@ -11,7 +11,7 @@ function debounce<F extends (...args: string[]) => void>(
   func: F,
   wait: number
 ) {
-  let timeout: NodeJS.Timeout | null;
+  let timeout: NodeJS.Timeout | null = null;
   return function (...args: Parameters<F>) {
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);
@@ -24,6 +24,62 @@ interface ContainerStudentsProps {
 
 const supabase = createClient();
 
+// Real-time subscription setup (not idiomatic, but per requirements)
+let studentsChannel: RealtimeChannel | null = null;
+let setStudentsGlobal:
+  | ((cb: (prev: Tables<'students'>[]) => Tables<'students'>[]) => void)
+  | null = null;
+let setSearchResultsGlobal:
+  | ((cb: (prev: Tables<'students'>[]) => Tables<'students'>[]) => void)
+  | null = null;
+let getSearchTerm: (() => string) | null = null;
+let performSearchGlobal: ((query: string) => void) | null = null;
+
+function setupRealtime() {
+  if (studentsChannel) return;
+  studentsChannel = supabase
+    .channel('students-changes')
+    .on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'students',
+      },
+      (payload) => {
+        if (!setStudentsGlobal) return;
+        if (payload.eventType === 'INSERT') {
+          const newStudent = payload.new as Tables<'students'>;
+          setStudentsGlobal((prev) => [...prev, newStudent]);
+          if (getSearchTerm && performSearchGlobal && getSearchTerm().trim()) {
+            performSearchGlobal(getSearchTerm());
+          }
+        } else if (payload.eventType === 'UPDATE') {
+          const updatedStudent = payload.new as Tables<'students'>;
+          setStudentsGlobal((prev) =>
+            prev.map((student) =>
+              student.id === updatedStudent.id ? updatedStudent : student
+            )
+          );
+          if (getSearchTerm && performSearchGlobal && getSearchTerm().trim()) {
+            performSearchGlobal(getSearchTerm());
+          }
+        } else if (payload.eventType === 'DELETE') {
+          const deletedStudent = payload.old as { id: string };
+          setStudentsGlobal((prev) =>
+            prev.filter((student) => student.id !== deletedStudent.id)
+          );
+          if (setSearchResultsGlobal) {
+            setSearchResultsGlobal((prev) =>
+              prev.filter((student) => student.id !== deletedStudent.id)
+            );
+          }
+        }
+      }
+    )
+    .subscribe();
+}
+
 export default function ContainerStudents({
   initialStudents,
 }: ContainerStudentsProps) {
@@ -34,15 +90,19 @@ export default function ContainerStudents({
   const [students, setStudents] =
     useState<Tables<'students'>[]>(initialStudents);
 
+  // Expose setters for global use in real-time handler
+  setStudentsGlobal = setStudents;
+  setSearchResultsGlobal = setSearchResults;
+  getSearchTerm = () => searchTerm;
+
   // Debounced search function
-  const performSearch = useCallback(
+  const performSearch = useRef(
     debounce(async (query: string) => {
       if (query.trim() === '') {
         setSearchResults(students);
         setIsSearching(false);
         return;
       }
-
       setIsSearching(true);
       try {
         const sanitizedQuery = query.trim().replace(/[%_]/g, '\\$&');
@@ -53,73 +113,27 @@ export default function ContainerStudents({
             `full_name.ilike.%${sanitizedQuery}%,school_year.ilike.%${sanitizedQuery}%`
           )
           .limit(10);
-
         if (error) {
           throw new Error(`Error fetching based on query: ${error.message}`);
         }
-
         setSearchResults(data || []);
       } catch (error) {
         console.error('Search failed:', error);
         setSearchResults([]);
       }
-    }, 400),
-    [students]
-  );
+    }, 350)
+  ).current;
 
-  // Trigger search when searchTerm changes
-  useEffect(() => {
-    performSearch(searchTerm);
-  }, [searchTerm, performSearch]);
+  performSearchGlobal = performSearch;
 
-  // Set up real-time subscription
-  useEffect(() => {
-    const channel: RealtimeChannel = supabase
-      .channel('students-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'students',
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newStudent = payload.new as Tables<'students'>;
-            setStudents((prev) => [...prev, newStudent]);
-            // If searching, re-run search to check if new student matches
-            if (searchTerm.trim()) {
-              performSearch(searchTerm);
-            }
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedStudent = payload.new as Tables<'students'>;
-            setStudents((prev) =>
-              prev.map((student) =>
-                student.id === updatedStudent.id ? updatedStudent : student
-              )
-            );
-            // If searching, re-run search to update searchResults
-            if (searchTerm.trim()) {
-              performSearch(searchTerm);
-            }
-          } else if (payload.eventType === 'DELETE') {
-            const deletedStudent = payload.old as { id: string };
-            setStudents((prev) =>
-              prev.filter((student) => student.id !== deletedStudent.id)
-            );
-            setSearchResults((prev) =>
-              prev.filter((student) => student.id !== deletedStudent.id)
-            );
-          }
-        }
-      )
-      .subscribe();
+  // Setup real-time subscription once (not idiomatic, but per requirements)
+  setupRealtime();
 
-    // Clean up subscription on unmount
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [searchTerm, performSearch]);
+  // Handler for search input change
+  const handleSearchTermChange = (term: string) => {
+    setSearchTerm(term);
+    performSearch(term);
+  };
 
   return (
     <div>
@@ -128,7 +142,10 @@ export default function ContainerStudents({
         Here you can manage your students. Click on a student to view their
         details, or add a new student.
       </p>
-      <SearchSection searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
+      <SearchSection
+        searchTerm={searchTerm}
+        setSearchTerm={handleSearchTermChange}
+      />
       <StudentList
         students={students}
         searchResults={searchResults}

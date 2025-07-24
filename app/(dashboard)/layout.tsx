@@ -1,16 +1,11 @@
 import { AppSidebar } from '@/components/app-sidebar';
-import DynamicBreadCrumb from '@/components/DynamicBreadCrumb';
+import NavbarHeader from '@/components/Navbar-header';
 
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger,
-} from '@/components/ui/sidebar';
-import { SchoolYearsProvider } from '@/lib/context/SchoolYearContext';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+// import { SchoolYearsProvider } from '@/lib/context/SchoolYearContext';
 
-import { getAuthenticatedProfile } from '@/lib/server.profiles';
-import { getSchoolYears } from '@/lib/server.schools';
+import { getAuthenticatedProfile } from '@/app/actions/profiles/server';
+// import { getSchoolYears } from '@/lib/schools/server';
 
 import { redirect } from 'next/navigation';
 
@@ -24,30 +19,21 @@ export default async function DashboardLayout({
     redirect('/auth/login');
   }
 
-  const schoolYearsData = await getSchoolYears();
+  // const schoolYearsData = await getSchoolYears();
   // Extract school_year array from the first row, or default to []
-  const schoolYears =
-    schoolYearsData.length > 0 ? schoolYearsData[0].school_year : [];
+  // const schoolYears =
+  // schoolYearsData.length > 0 ? schoolYearsData[0].school_year : [];
   return (
     <SidebarProvider>
       <AppSidebar profile={profile} />
-      <SchoolYearsProvider schoolYears={schoolYears}>
-        <SidebarInset>
-          <header className='sticky z-50 bg-background top-0 flex h-16 shrink-0 items-center justify-between gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12 mr-2'>
-            <div className='flex items-center gap-2 px-4'>
-              <SidebarTrigger className='-ml-1' />
-              <Separator
-                orientation='vertical'
-                className='mr-2 data-[orientation=vertical]:h-4'
-              />
-              <DynamicBreadCrumb />
-            </div>
-          </header>
-          <main className='flex flex-1 flex-col gap-2 p-2 sm:p-4 pt-0'>
-            {children}
-          </main>
-        </SidebarInset>
-      </SchoolYearsProvider>
+      {/* <SchoolYearsProvider schoolYears={schoolYears}> */}
+      <SidebarInset>
+        <NavbarHeader />
+        <main className='flex flex-1 flex-col gap-2 p-2 sm:p-4 pt-0'>
+          {children}
+        </main>
+      </SidebarInset>
+      {/* </SchoolYearsProvider> */}
     </SidebarProvider>
   );
 }

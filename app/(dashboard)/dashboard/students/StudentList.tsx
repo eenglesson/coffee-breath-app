@@ -95,13 +95,15 @@ export default function StudentList({
           </CardContent>
           <CardFooter className='bg-secondary/50 flex w-full justify-center p-2'>
             <span className='text-sm text-muted-foreground flex items-center justify-between flex-col'>
-              <span className='font-semibold pr-1'>Last Updated </span>
-              {new Date(student.created_at).toLocaleString('en-US', {
-                year: 'numeric',
-                month: 'short',
-                day: 'numeric',
-                hour12: false,
-              })}
+              <span className='font-semibold pr-1'>Last Updated</span>
+              {student.updated_at
+                ? new Date(student.updated_at).toLocaleString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric',
+                    hour12: false,
+                  })
+                : 'Never'}
             </span>
           </CardFooter>
         </Card>

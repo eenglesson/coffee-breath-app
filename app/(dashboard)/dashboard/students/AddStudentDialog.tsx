@@ -29,7 +29,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import { createStudent } from '@/lib/server.students';
+import { createStudent } from '@/app/actions/students/server';
 import { Tables } from '@/database.types';
 import { useSchoolYears } from '@/lib/context/SchoolYearContext';
 

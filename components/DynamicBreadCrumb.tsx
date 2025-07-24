@@ -38,11 +38,13 @@ export default function DynamicBreadcrumb() {
   const rootLabel = inDashboard ? 'Dashboard' : 'Home';
 
   return (
-    <Breadcrumb>
-      <BreadcrumbList>
-        <BreadcrumbItem>
+    <Breadcrumb className='max-w-full overflow-hidden'>
+      <BreadcrumbList className='flex-nowrap overflow-hidden'>
+        <BreadcrumbItem className='shrink-0'>
           <BreadcrumbLink asChild>
-            <Link href={rootHref}>{rootLabel}</Link>
+            <Link href={rootHref} className='truncate whitespace-nowrap'>
+              {rootLabel}
+            </Link>
           </BreadcrumbLink>
         </BreadcrumbItem>
 
@@ -53,13 +55,19 @@ export default function DynamicBreadcrumb() {
 
           return (
             <Fragment key={href}>
-              <BreadcrumbSeparator />
-              <BreadcrumbItem>
+              <BreadcrumbSeparator className='shrink-0' />
+              <BreadcrumbItem
+                className={isLast ? 'min-w-0 flex-1' : 'shrink-0'}
+              >
                 {isLast ? (
-                  <BreadcrumbPage>{formatLabel(segment)}</BreadcrumbPage>
+                  <BreadcrumbPage className='truncate whitespace-nowrap'>
+                    {formatLabel(segment)}
+                  </BreadcrumbPage>
                 ) : (
                   <BreadcrumbLink asChild>
-                    <Link href={href}>{formatLabel(segment)}</Link>
+                    <Link href={href} className='truncate whitespace-nowrap'>
+                      {formatLabel(segment)}
+                    </Link>
                   </BreadcrumbLink>
                 )}
               </BreadcrumbItem>

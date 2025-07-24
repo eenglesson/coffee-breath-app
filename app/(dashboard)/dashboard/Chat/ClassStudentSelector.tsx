@@ -237,16 +237,6 @@ export default function ClassStudentSelector({
     setSearchTerm('');
   };
 
-  // Clear all selections
-  const clearAll = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setSelectedItems({
-      classes: {},
-      students: {},
-    });
-  };
-
-  const hasSelections = getTotalSelectedStudents() > 0;
   const isSearching = searchTerm.trim().length > 0;
 
   return (
@@ -276,33 +266,11 @@ export default function ClassStudentSelector({
         <PopoverContent className='w-80 p-0 bg-popover text-popover-foreground border-border'>
           {/* Header */}
           <div className='p-3 border-b border-border'>
-            <div className='flex items-center justify-between mb-2'>
-              <h3 className='text-sm font-medium text-foreground'>
-                Select Students
-              </h3>
-              {hasSelections && (
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  className='text-muted-foreground h-auto p-1 text-xs hover:text-destructive transition-colors duration-200'
-                  onClick={clearAll}
-                >
-                  Clear All
-                </Button>
-              )}
-            </div>
-
-            {!isSearching && (
-              <div className='text-xs text-muted-foreground mb-2'>
-                Double-click classes to select all students
-              </div>
-            )}
-
             {/* Search Input */}
             <div className='relative'>
               <Search
                 className={cn(
-                  'absolute left-2 top-2.5 h-4 w-4 text-muted-foreground transition-colors duration-200',
+                  'absolute left-2 top-2 h-4 w-4 text-muted-foreground transition-colors duration-200',
                   isSearching && 'text-primary'
                 )}
               />
@@ -316,7 +284,7 @@ export default function ClassStudentSelector({
                 <Button
                   variant='ghost'
                   size='sm'
-                  className='absolute right-1 top-1 h-6 w-6 p-0 transition-opacity duration-200 hover:bg-destructive/10'
+                  className='absolute right-1 top-1 h-6 w-6 p-0 transition-opacity duration-200 hover:bg-muted'
                   onClick={clearSearch}
                 >
                   <X className='h-3 w-3' />

@@ -1,11 +1,13 @@
 // app/api/chat/route.ts
 import { streamText } from 'ai';
 import { xai } from '@ai-sdk/xai';
-import { chatbotPrompt } from '@/lib/prompts/chatbot';
+import { addMessageToConversation } from '@/app/actions/messages/messages';
 import { adaptQuestionsForStudentsTool } from '@/lib/tools/questionAdapter';
 
+import { chatbotPrompt } from '@/lib/prompts/chatbot';
+
 export async function POST(req: Request) {
-  const { messages, selectedStudents } = await req.json();
+  const { messages, selectedStudents, conversationId } = await req.json();
 
   let studentContext = '';
   if (selectedStudents?.length > 0) {
@@ -36,7 +38,7 @@ export async function POST(req: Request) {
     );
     studentContext += `
 IMPORTANT: When the user asks to adapt, customize, or theme questions for these students, you MUST use the adaptQuestionsForStudents tool. 
-
+your name is Coffee Breath, and you are a helpful AI assistant that specializes in adapting educational content for students based on their individual needs and interests.
 The tool expects:
 - originalQuestions: Array of question strings from the conversation
 - students: Array of student objects with adaptedQuestions
@@ -46,7 +48,7 @@ For each student, create thoughtful adaptations considering their:
 - Interests (incorporate themes they enjoy)
 - Learning difficulties (provide appropriate accommodations)
 - Grade level (adjust complexity appropriately)
-- Individual learning needs
+- Individual learning needs 
 
 Make sure each adaptation includes:
 - original: The original question text
@@ -68,14 +70,34 @@ Use this information to tailor responses, such as creating questions or explanat
     model,
     messages,
     system: systemPrompt,
-
     tools: {
       adaptQuestionsForStudents: adaptQuestionsForStudentsTool,
     },
-
     maxTokens: 8192,
     temperature: 0.7,
     topP: 1,
+    onFinish: async ({ text }) => {
+      // Save messages to conversation if conversationId is provided
+      if (conversationId && messages.length > 0) {
+        try {
+          // Get the last user message (the most recent one in this request)
+          const lastUserMessage = messages[messages.length - 1];
+          if (lastUserMessage?.role === 'user') {
+            // Always save both the user message and AI response
+            // The frontend will handle not sending duplicate first messages
+            await addMessageToConversation(
+              conversationId,
+              lastUserMessage.content,
+              'user'
+            );
+
+            await addMessageToConversation(conversationId, text, 'assistant');
+          }
+        } catch (error) {
+          console.error('Failed to save messages to conversation:', error);
+        }
+      }
+    },
   });
 
   return result.toDataStreamResponse();

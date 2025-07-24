@@ -22,7 +22,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { updateStudent, deleteStudent } from '@/lib/server.students'; // Import reusable functions
+import { updateStudent, deleteStudent } from '@/app/actions/students/server'; // Import reusable functions
 import { useState } from 'react';
 import { Trash } from 'lucide-react';
 import {

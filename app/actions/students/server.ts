@@ -3,7 +3,29 @@ import { Tables } from '@/database.types';
 import { createClient } from '@/lib/supabase/server';
 
 // Get the authenticated user's school_id from profiles table
-async function getUserSchoolId() {
+export async function getStudents() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from('students').select('*').limit(30);
+
+  if (error) {
+    throw new Error(`Error fetching students: ${error.message}`);
+  }
+
+  return data;
+}
+
+export async function getAllStudents() {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from('students').select('*');
+
+  if (error) {
+    throw new Error(`Error fetching students: ${error.message}`);
+  }
+
+  return data;
+}
+
+export async function getUserSchoolId() {
   const supabase = await createClient();
   const { data: userData, error: userError } = await supabase.auth.getUser();
 

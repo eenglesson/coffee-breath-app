@@ -1,7 +1,16 @@
 'use client';
 
 import * as React from 'react';
-import { Bot, Calculator, Omega, SquareTerminal, Users } from 'lucide-react';
+import {
+  Bot,
+  Calculator,
+  Coffee,
+  MessageSquareText,
+  Omega,
+  Presentation,
+  SquareTerminal,
+  Users,
+} from 'lucide-react';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
 import { TeamSwitcher } from '@/components/team-switcher';
@@ -15,7 +24,7 @@ import {
 import { Tables } from '@/database.types';
 
 // Sample data (unchanged)
-const data = {
+const paths = {
   teams: [
     {
       name: 'Matematics',
@@ -41,9 +50,28 @@ const data = {
       icon: Users,
     },
     {
-      title: 'Prompts',
-      url: '/dashboard/prompts',
+      title: 'Ai',
+      // url: '/dashboard/ai-assistant',
+      url: '#',
       icon: Bot,
+      isActive: true,
+      items: [
+        {
+          title: 'Coffee breath AI',
+          icon: Coffee,
+          url: '/dashboard/coffee-breath-ai',
+        },
+        {
+          title: 'Create Lesson Plan',
+          icon: Presentation,
+          url: '/dashboard/create-lesson-plan',
+        },
+        {
+          title: 'Create Questions',
+          url: '/dashboard/create-questions',
+          icon: MessageSquareText,
+        },
+      ],
     },
   ],
 };
@@ -55,10 +83,10 @@ export function AppSidebar({
   return (
     <Sidebar collapsible='icon' {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={paths.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
+        <NavMain items={paths.navMain} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser profile={profile} />

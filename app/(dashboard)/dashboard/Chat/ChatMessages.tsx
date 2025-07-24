@@ -6,7 +6,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@radix-ui/react-tooltip';
-import { CheckIcon, Copy, RefreshCcw } from 'lucide-react';
+import { CheckIcon, Copy } from 'lucide-react';
 import { MessageContent } from '@/components/prompt-kit/message';
 import { cn } from '@/lib/utils';
 import AdaptedQuestionsTable from '@/lib/toolsComponents/AdaptedQuestionsTable';
@@ -27,29 +27,22 @@ export type Message = {
 
 interface ChatMessagesProps {
   messages: Message[];
-  onRedo: (userMessageId: string) => void;
 }
 
-export default function ChatMessages({ messages, onRedo }: ChatMessagesProps) {
+export default function ChatMessages({ messages }: ChatMessagesProps) {
   return (
     <div className='flex-1 overflow-y-auto w-full mx-auto'>
       {' '}
       {/* Increased max-width for table */}
       {messages.map((msg) => (
-        <Message key={msg.id} message={msg} onRedo={onRedo} />
+        <Message key={msg.id} message={msg} />
       ))}
       <div />
     </div>
   );
 }
 
-function Message({
-  message,
-  onRedo,
-}: {
-  message: Message;
-  onRedo: (userMessageId: string) => void;
-}) {
+function Message({ message }: { message: Message }) {
   const [copied, setCopied] = useState(false);
   const isUser = message.type === 'user';
   const isComplete = message.isComplete;
@@ -126,7 +119,7 @@ function Message({
         >
           {!isUser && isComplete && (
             <>
-              <Tooltip delayDuration={150}>
+              {/* <Tooltip delayDuration={150}>
                 <TooltipTrigger asChild>
                   <Button
                     size='icon'
@@ -147,7 +140,7 @@ function Message({
                 >
                   <p>Regenerate</p>
                 </TooltipContent>
-              </Tooltip>
+              </Tooltip> */}
             </>
           )}
           <Tooltip delayDuration={150}>
