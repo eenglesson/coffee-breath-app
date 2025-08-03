@@ -2,9 +2,6 @@
 import { streamText } from 'ai';
 import { xai } from '@ai-sdk/xai';
 import { addMessageToConversation } from '@/app/actions/messages/messages';
-import { adaptQuestionsForStudentsTool } from '@/lib/tools/questionAdapter';
-
-import { chatbotPrompt } from '@/lib/prompts/chatbot';
 
 export async function POST(req: Request) {
   const { messages, selectedStudents, conversationId } = await req.json();
@@ -60,19 +57,12 @@ Make sure each adaptation includes:
 Use this information to tailor responses, such as creating questions or explanations that align with the students' interests, accommodate their learning difficulties, and are appropriate for their school year.\n`;
   }
 
-  const systemPrompt = studentContext
-    ? `${chatbotPrompt}\n\n${studentContext}`
-    : chatbotPrompt;
-
   const model = xai('grok-3-mini-latest');
 
   const result = streamText({
     model,
     messages,
-    system: systemPrompt,
-    tools: {
-      adaptQuestionsForStudents: adaptQuestionsForStudentsTool,
-    },
+    system: studentContext,
     maxTokens: 8192,
     temperature: 0.7,
     topP: 1,

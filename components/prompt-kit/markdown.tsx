@@ -1,16 +1,10 @@
 import { cn } from '@/lib/utils';
 import { marked } from 'marked';
-import React, { memo, useId, useMemo } from 'react';
+import { memo, useId, useMemo } from 'react';
 import ReactMarkdown, { Components } from 'react-markdown';
 import remarkBreaks from 'remark-breaks';
 import remarkGfm from 'remark-gfm';
-import {
-  CodeBlock,
-  CodeBlockCode,
-  CodeBlockGroup,
-} from '../prompt-kit/code-block';
-import { LinkMarkdown } from './link-markdown';
-import { ButtonCopy } from '../common/button-copy';
+import { CodeBlock, CodeBlockCode } from './code-block';
 
 export type MarkdownProps = {
   children: string;
@@ -36,14 +30,11 @@ const INITIAL_COMPONENTS: Partial<Components> = {
       !props.node?.position?.start.line ||
       props.node?.position?.start.line === props.node?.position?.end.line;
 
-    // Convert children to string safely
-    const codeContent = React.Children.toArray(children).join('');
-
     if (isInline) {
       return (
         <span
           className={cn(
-            'bg-primary-foreground rounded-sm px-2 py-1 font-mono text-sm',
+            'bg-primary-foreground rounded-sm px-1 font-mono text-sm',
             className
           )}
           {...props}
@@ -55,38 +46,10 @@ const INITIAL_COMPONENTS: Partial<Components> = {
 
     const language = extractLanguage(className);
 
-    // Ensure we have valid code content
-    if (!codeContent || typeof codeContent !== 'string') {
-      return (
-        <pre className='bg-muted p-4 rounded-lg overflow-x-auto'>
-          <code>{codeContent || '// No code content'}</code>
-        </pre>
-      );
-    }
-
     return (
       <CodeBlock className={className}>
-        <CodeBlockGroup className='flex h-9 items-center justify-between px-4'>
-          <div className='text-muted-foreground py-1 pr-2 font-mono text-xs'>
-            {language}
-          </div>
-          <ButtonCopy code={children as string} />
-        </CodeBlockGroup>
-        <div className='sticky top-16 lg:top-0'>
-          <div className='absolute right-0 bottom-0 flex h-9 items-center pr-1.5'>
-            {/* <ButtonCopy code={codeContent} /> */}
-          </div>
-        </div>
-        <CodeBlockCode code={codeContent} language={language} />
+        <CodeBlockCode code={children as string} language={language} />
       </CodeBlock>
-    );
-  },
-  a: function AComponent({ href, children, ...props }) {
-    if (!href) return <span {...props}>{children}</span>;
-    return (
-      <LinkMarkdown href={href} {...props}>
-        {children}
-      </LinkMarkdown>
     );
   },
   pre: function PreComponent({ children }) {

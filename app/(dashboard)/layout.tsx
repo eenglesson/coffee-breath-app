@@ -2,6 +2,7 @@ import { AppSidebar } from '@/components/app-sidebar';
 import NavbarHeader from '@/components/Navbar-header';
 
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { TanstackQueryProvider } from '@/lib/tanstack-query/tanstack-query-provider';
 // import { SchoolYearsProvider } from '@/lib/context/SchoolYearContext';
 
 import { getAuthenticatedProfile } from '@/app/actions/profiles/server';
@@ -24,16 +25,18 @@ export default async function DashboardLayout({
   // const schoolYears =
   // schoolYearsData.length > 0 ? schoolYearsData[0].school_year : [];
   return (
-    <SidebarProvider>
-      <AppSidebar profile={profile} />
-      {/* <SchoolYearsProvider schoolYears={schoolYears}> */}
-      <SidebarInset>
-        <NavbarHeader />
-        <main className='flex flex-1 flex-col gap-2 p-2 sm:p-4 pt-0'>
-          {children}
-        </main>
-      </SidebarInset>
-      {/* </SchoolYearsProvider> */}
-    </SidebarProvider>
+    <TanstackQueryProvider>
+      <SidebarProvider>
+        <AppSidebar profile={profile} />
+        {/* <SchoolYearsProvider schoolYears={schoolYears}> */}
+        <SidebarInset>
+          <NavbarHeader />
+          <main className='flex flex-1 flex-col gap-2 p-2 sm:p-4 pt-0'>
+            {children}
+          </main>
+        </SidebarInset>
+        {/* </SchoolYearsProvider> */}
+      </SidebarProvider>
+    </TanstackQueryProvider>
   );
 }

@@ -1,6 +1,6 @@
 'use client';
+
 import { cn } from '@/lib/utils';
-import { useTheme } from 'next-themes';
 import React, { useEffect, useState } from 'react';
 import { codeToHtml } from 'shiki';
 
@@ -38,42 +38,28 @@ function CodeBlockCode({
   className,
   ...props
 }: CodeBlockCodeProps) {
-  const { theme: appTheme } = useTheme();
   const [highlightedHtml, setHighlightedHtml] = useState<string | null>(null);
-  const [error, setError] = useState<boolean>(false);
 
   useEffect(() => {
     async function highlight() {
-      // Early return if code is undefined, null, or empty
-      if (!code || typeof code !== 'string') {
-        console.warn('CodeBlockCode: code prop is undefined or invalid:', code);
-        setError(true);
+      if (!code) {
+        setHighlightedHtml('<pre><code></code></pre>');
         return;
       }
 
-      try {
-        const html = await codeToHtml(code, {
-          lang: language,
-          theme: appTheme === 'dark' ? 'github-dark' : 'github-light',
-        });
-        setHighlightedHtml(html);
-        setError(false);
-      } catch (err) {
-        console.error('Error highlighting code:', err);
-        setError(true);
-      }
+      const html = await codeToHtml(code, { lang: language, theme });
+      setHighlightedHtml(html);
     }
-
     highlight();
-  }, [code, language, theme, appTheme]);
+  }, [code, language, theme]);
 
   const classNames = cn(
-    'w-full overflow-x-auto text-[13px] [&>pre]:px-4 [&>pre]:py-4 [&>pre]:!bg-background',
+    'w-full overflow-x-auto text-[13px] [&>pre]:px-4 [&>pre]:py-4',
     className
   );
 
-  // SSR fallback or error fallback: render plain code
-  return highlightedHtml && !error ? (
+  // SSR fallback: render plain code if not hydrated yet
+  return highlightedHtml ? (
     <div
       className={classNames}
       dangerouslySetInnerHTML={{ __html: highlightedHtml }}
@@ -82,7 +68,7 @@ function CodeBlockCode({
   ) : (
     <div className={classNames} {...props}>
       <pre>
-        <code>{code || '// Code content unavailable'}</code>
+        <code>{code}</code>
       </pre>
     </div>
   );

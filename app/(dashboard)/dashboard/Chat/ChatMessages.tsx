@@ -9,7 +9,6 @@ import {
 import { CheckIcon, Copy } from 'lucide-react';
 import { MessageContent } from '@/components/prompt-kit/message';
 import { cn } from '@/lib/utils';
-import AdaptedQuestionsTable from '@/lib/toolsComponents/AdaptedQuestionsTable';
 
 export type Message = {
   id: string;
@@ -47,30 +46,6 @@ function Message({ message }: { message: Message }) {
   const isUser = message.type === 'user';
   const isComplete = message.isComplete;
 
-  // Check if this message has tool invocations with adaptQuestionsForStudents results
-  const hasAdaptedQuestionsResult = message.toolInvocations?.some(
-    (tool) => tool.toolName === 'adaptQuestionsForStudents' && tool.result
-  );
-
-  const getAdaptedQuestionsData = () => {
-    const toolInvocation = message.toolInvocations?.find(
-      (tool) => tool.toolName === 'adaptQuestionsForStudents' && tool.result
-    );
-
-    if (toolInvocation?.result) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = toolInvocation.result as any;
-      return {
-        originalQuestions: result.originalQuestions || [],
-        students: result.students || [],
-        adaptationFocus:
-          result.adaptationFocus || 'Student-specific adaptations',
-      };
-    }
-
-    return null;
-  };
-
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
       <CardContent
@@ -96,19 +71,6 @@ function Message({ message }: { message: Message }) {
             </MessageContent>
 
             {/* Render AdaptedQuestionsTable if tool result exists */}
-            {hasAdaptedQuestionsResult &&
-              (() => {
-                const data = getAdaptedQuestionsData();
-                return data ? (
-                  <div className='mt-6'>
-                    <AdaptedQuestionsTable
-                      originalQuestions={data.originalQuestions}
-                      students={data.students}
-                      adaptationFocus={data.adaptationFocus}
-                    />
-                  </div>
-                ) : null;
-              })()}
           </div>
         )}
 
