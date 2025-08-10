@@ -8,66 +8,79 @@ import {
 } from '@/components/prompt-kit/prompt-input';
 import { Button } from '@/components/ui/button';
 
-import { ArrowUp, Globe, MoreHorizontal, Plus } from 'lucide-react';
+import { ArrowUp, Globe, MoreHorizontal, Paperclip } from 'lucide-react';
 import type React from 'react';
-import { useState } from 'react';
 
-function PromptInputWithActions() {
-  const [prompt, setPrompt] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+export interface ChatInputProps {
+  value?: string;
+  onValueChange?: (value: string) => void;
+  onSubmit?: (message: string) => void;
+  isLoading?: boolean;
+  placeholder?: string;
+  disabled?: boolean;
+  className?: string;
+}
 
+function ChatInput({
+  value = '',
+  onValueChange,
+  onSubmit,
+  isLoading = false,
+  placeholder = 'Type your message...',
+  disabled = false,
+  className,
+}: ChatInputProps) {
   const handleSubmit = () => {
-    if (!prompt.trim()) return;
-
-    setIsLoading(true);
-
-    // Simulate API call
-    console.log('Processing:', prompt);
-    setTimeout(() => {
-      setPrompt('');
-      setIsLoading(false);
-    }, 1500);
+    if (!value.trim() || isLoading || disabled) return;
+    onSubmit?.(value.trim());
   };
 
   return (
-    <div className='absolute inset-x-0 bottom-0 mx-auto max-w-3xl px-3 pb-3 md:px-5 md:pb-5'>
+    <div className={`w-full ${className || ''} `}>
       <PromptInput
         isLoading={isLoading}
-        value={prompt}
-        onValueChange={setPrompt}
+        value={value}
+        onValueChange={onValueChange}
         onSubmit={handleSubmit}
-        className='border-input bg-popover relative z-10 w-full rounded-3xl border p-0 pt-1 shadow-xs'
+        className='border-input backdrop-blur supports-[backdrop-filter]:bg-background/60 relative z-10 w-full rounded-3xl border p-0 pt-1 shadow-xs'
       >
         <div className='flex flex-col'>
           <PromptInputTextarea
-            placeholder='Ask anything'
+            placeholder={placeholder}
             className='min-h-[44px] pt-3 pl-4 text-base leading-[1.3] sm:text-base md:text-base'
+            disabled={disabled}
           />
 
           <PromptInputActions className='mt-5 flex w-full items-center justify-between gap-2 px-3 pb-3'>
             <div className='flex items-center gap-2'>
-              <PromptInputAction tooltip='Add a new action'>
+              <PromptInputAction tooltip='Add attachment'>
                 <Button
                   variant='outline'
                   size='icon'
                   className='size-9 rounded-full'
+                  disabled={disabled}
                 >
-                  <Plus size={18} />
+                  <Paperclip size={18} />
                 </Button>
               </PromptInputAction>
 
-              <PromptInputAction tooltip='Search'>
-                <Button variant='outline' className='rounded-full'>
+              <PromptInputAction tooltip='Search web'>
+                <Button
+                  variant='outline'
+                  className='rounded-full'
+                  disabled={disabled}
+                >
                   <Globe size={18} />
                   Search
                 </Button>
               </PromptInputAction>
 
-              <PromptInputAction tooltip='More actions'>
+              <PromptInputAction tooltip='More options'>
                 <Button
                   variant='outline'
                   size='icon'
                   className='size-9 rounded-full'
+                  disabled={disabled}
                 >
                   <MoreHorizontal size={18} />
                 </Button>
@@ -76,14 +89,14 @@ function PromptInputWithActions() {
             <div className='flex items-center gap-2'>
               <Button
                 size='icon'
-                disabled={!prompt.trim() || isLoading}
+                disabled={!value.trim() || isLoading || disabled}
                 onClick={handleSubmit}
                 className='size-9 rounded-full'
               >
                 {!isLoading ? (
                   <ArrowUp size={18} />
                 ) : (
-                  <span className='size-3 rounded-xs bg-white' />
+                  <span className='size-3 rounded-xs bg-white animate-pulse' />
                 )}
               </Button>
             </div>
@@ -94,4 +107,4 @@ function PromptInputWithActions() {
   );
 }
 
-export { PromptInputWithActions };
+export { ChatInput };

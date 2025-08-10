@@ -1,28 +1,30 @@
-import { Message as MessageType } from '@ai-sdk/react';
-import { useRef } from 'react';
-
+'use client';
 import {
   ChatContainerContent,
   ChatContainerRoot,
 } from '@/components/prompt-kit/chat-container';
 import { Loader } from '@/components/prompt-kit/loader';
+
 import { ScrollButton } from '@/components/prompt-kit/scroll-button';
+import { UIMessage as MessageType } from '@ai-sdk/react';
+import { useRef } from 'react';
 import { Message } from './message';
 
 type ConversationProps = {
   messages: MessageType[];
   status?: 'streaming' | 'ready' | 'submitted' | 'error';
-  onDelete: (id: string) => void;
+  onDelete?: (id: string) => void;
   onEdit: (id: string, newText: string) => void;
   onReload: () => void;
+  onQuote?: (text: string, messageId: string) => void;
 };
 
 export function Conversation({
   messages,
   status = 'ready',
-  onDelete,
   onEdit,
   onReload,
+  onQuote,
 }: ConversationProps) {
   const initialMessageCount = useRef(messages.length);
 
@@ -49,24 +51,32 @@ export function Conversation({
             const hasScrollAnchor =
               isLast && messages.length > initialMessageCount.current;
 
+            // Extract text content from parts
+            const textContent =
+              message.parts
+                ?.filter((part) => part.type === 'text')
+                .map((part) => part.text)
+                .join('\n') || '';
+
             return (
               <Message
                 key={message.id}
                 id={message.id}
-                attachments={message.experimental_attachments}
+                variant={message.role}
+                // attachments={message.experimental_attachments}
                 isLast={isLast}
-                onDelete={onDelete}
                 onEdit={onEdit}
                 onReload={onReload}
                 hasScrollAnchor={hasScrollAnchor}
                 parts={message.parts}
                 status={status}
+                onQuote={onQuote}
               >
-                {message.content}
+                {textContent}
               </Message>
             );
           })}
-          {status === 'submitted' &&
+          {(status === 'streaming' || status === 'submitted') &&
             messages.length > 0 &&
             messages[messages.length - 1].role === 'user' && (
               <div className='group min-h-scroll-anchor flex w-full max-w-3xl flex-col items-start gap-2 px-6 pb-2'>

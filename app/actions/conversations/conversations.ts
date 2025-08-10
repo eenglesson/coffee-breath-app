@@ -3,7 +3,6 @@
 import { createClient } from '@/lib/supabase/server';
 import { Database } from '@/database.types';
 import { revalidatePath } from 'next/cache';
-import grokEndPoint from '../../api/grok';
 
 // Type aliases for convenience
 type Conversation = Database['public']['Tables']['ai_conversations']['Row'];
@@ -62,49 +61,6 @@ export async function getUserConversations(): Promise<Conversation[]> {
   }
 
   return data;
-}
-
-export async function generateAndUpdateConversationTitle(
-  conversationId: string,
-  messages: Array<{ role: string; content: string }>
-): Promise<string> {
-  try {
-    // Take the first user message to understand the conversation context
-    const firstUserMessage =
-      messages.find((msg) => msg.role === 'user')?.content || '';
-
-    if (!firstUserMessage) {
-      return 'Educational Conversation';
-    }
-
-    const response = await grokEndPoint.chat.completions.create({
-      model: 'grok-3-mini-latest',
-      messages: [
-        {
-          role: 'system',
-          content: `Generate a short, clear title (3-6 words) based on the user's first message. make personal and professional.`,
-        },
-        {
-          role: 'user',
-          content: `Generate a title for this educational request: "${firstUserMessage}"`,
-        },
-      ],
-      max_tokens: 30,
-      temperature: 0.4,
-    });
-
-    const title =
-      response.choices[0]?.message?.content?.trim() ||
-      'Educational Conversation';
-
-    // Update the conversation with the generated title
-    await updateConversationTitle(conversationId, title);
-
-    return title;
-  } catch (error) {
-    console.error('Failed to generate conversation title:', error);
-    return 'Educational Conversation';
-  }
 }
 
 export async function updateConversationTitle(

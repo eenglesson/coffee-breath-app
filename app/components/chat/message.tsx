@@ -1,226 +1,81 @@
-import { Markdown } from '@/components/prompt-kit/markdown';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Copy, Edit, RotateCcw, Trash2 } from 'lucide-react';
+import { UIMessage as MessageType } from '@ai-sdk/react';
+import React, { useState } from 'react';
+import { MessageAssistant } from './message-assistant';
+import { MessageUser } from './message-user';
 
-export type MessageProps = {
+type MessageProps = {
+  variant: MessageType['role'];
+  children: string;
   id: string;
-  children: React.ReactNode;
-  attachments?: unknown[];
+  // attachments?: MessageType['experimental_attachments'];
   isLast?: boolean;
-  onDelete?: (id: string) => void;
-  onEdit?: (id: string, newText: string) => void;
-  onReload?: () => void;
+  onEdit: (id: string, newText: string) => void;
+  onReload: () => void;
   hasScrollAnchor?: boolean;
-  parts?: unknown[];
+  parts?: MessageType['parts'];
   status?: 'streaming' | 'ready' | 'submitted' | 'error';
   className?: string;
-} & React.HTMLProps<HTMLDivElement>;
+  onQuote?: (text: string, messageId: string) => void;
+};
 
-const Message = ({
-  id,
+export function Message({
+  variant,
   children,
+  id,
+  // attachments,
   isLast,
-  onDelete,
   onEdit,
   onReload,
   hasScrollAnchor,
+  parts,
+  status,
   className,
-  ...props
-}: MessageProps) => {
-  const handleCopy = async () => {
-    if (typeof children === 'string') {
-      await navigator.clipboard.writeText(children);
-    }
+  onQuote,
+}: MessageProps) {
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(children);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 500);
   };
 
-  return (
-    <div
-      className={cn(
-        'group min-h-scroll-anchor flex w-full max-w-3xl flex-col items-start gap-2 px-6 pb-2',
-        className
-      )}
-      {...props}
-    >
-      <div className='flex gap-3 w-full'>
-        <MessageAvatar
-          src='/api/placeholder/32/32'
-          alt='AI Assistant'
-          fallback='AI'
-        />
-        <div className='flex-1 min-w-0'>
-          <MessageContent markdown={true}>{children as string}</MessageContent>
+  if (variant === 'user') {
+    return (
+      <MessageUser
+        copied={copied}
+        copyToClipboard={copyToClipboard}
+        onReload={onReload}
+        onEdit={onEdit}
+        id={id}
+        onDelete={() => {}}
+        hasScrollAnchor={hasScrollAnchor}
+        // attachments={attachments}
+        className={className}
+      >
+        {children}
+      </MessageUser>
+    );
+  }
 
-          <MessageActions className='opacity-0 group-hover:opacity-100 transition-opacity mt-2'>
-            <MessageAction tooltip='Copy message'>
-              <Button
-                variant='ghost'
-                size='sm'
-                onClick={handleCopy}
-                className='h-6 w-6 p-0'
-              >
-                <Copy className='h-3 w-3' />
-              </Button>
-            </MessageAction>
+  if (variant === 'assistant') {
+    return (
+      <MessageAssistant
+        copied={copied}
+        copyToClipboard={copyToClipboard}
+        onReload={onReload}
+        isLast={isLast}
+        hasScrollAnchor={hasScrollAnchor}
+        parts={parts}
+        status={status}
+        className={className}
+        messageId={id}
+        onQuote={onQuote}
+      >
+        {children}
+      </MessageAssistant>
+    );
+  }
 
-            {onEdit && (
-              <MessageAction tooltip='Edit message'>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  onClick={() =>
-                    onEdit(id, typeof children === 'string' ? children : '')
-                  }
-                  className='h-6 w-6 p-0'
-                >
-                  <Edit className='h-3 w-3' />
-                </Button>
-              </MessageAction>
-            )}
-
-            {onReload && isLast && (
-              <MessageAction tooltip='Regenerate response'>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  onClick={onReload}
-                  className='h-6 w-6 p-0'
-                >
-                  <RotateCcw className='h-3 w-3' />
-                </Button>
-              </MessageAction>
-            )}
-
-            {onDelete && (
-              <MessageAction tooltip='Delete message'>
-                <Button
-                  variant='ghost'
-                  size='sm'
-                  onClick={() => onDelete(id)}
-                  className='h-6 w-6 p-0 hover:text-destructive'
-                >
-                  <Trash2 className='h-3 w-3' />
-                </Button>
-              </MessageAction>
-            )}
-          </MessageActions>
-        </div>
-      </div>
-
-      {hasScrollAnchor && <div className='scroll-anchor' />}
-    </div>
-  );
-};
-
-export type MessageAvatarProps = {
-  src: string;
-  alt: string;
-  fallback?: string;
-  delayMs?: number;
-  className?: string;
-};
-
-const MessageAvatar = ({
-  src,
-  alt,
-  fallback,
-  delayMs,
-  className,
-}: MessageAvatarProps) => {
-  return (
-    <Avatar className={cn('h-8 w-8 shrink-0', className)}>
-      <AvatarImage src={src} alt={alt} />
-      {fallback && (
-        <AvatarFallback delayMs={delayMs}>{fallback}</AvatarFallback>
-      )}
-    </Avatar>
-  );
-};
-
-export type MessageContentProps = {
-  children: React.ReactNode;
-  markdown?: boolean;
-  className?: string;
-} & React.ComponentProps<typeof Markdown> &
-  React.HTMLProps<HTMLDivElement>;
-
-const MessageContent = ({
-  children,
-  markdown = false,
-  className,
-  ...props
-}: MessageContentProps) => {
-  const classNames = cn(
-    'rounded-lg p-2 text-foreground bg-secondary prose break-words whitespace-normal',
-    className
-  );
-
-  return markdown ? (
-    <Markdown className={classNames} {...props}>
-      {children as string}
-    </Markdown>
-  ) : (
-    <div className={classNames} {...props}>
-      {children}
-    </div>
-  );
-};
-
-export type MessageActionsProps = {
-  children: React.ReactNode;
-  className?: string;
-} & React.HTMLProps<HTMLDivElement>;
-
-const MessageActions = ({
-  children,
-  className,
-  ...props
-}: MessageActionsProps) => (
-  <div
-    className={cn('text-muted-foreground flex items-center gap-2', className)}
-    {...props}
-  >
-    {children}
-  </div>
-);
-
-export type MessageActionProps = {
-  className?: string;
-  tooltip: React.ReactNode;
-  children: React.ReactNode;
-  side?: 'top' | 'bottom' | 'left' | 'right';
-} & React.ComponentProps<typeof Tooltip>;
-
-const MessageAction = ({
-  tooltip,
-  children,
-  className,
-  side = 'top',
-  ...props
-}: MessageActionProps) => {
-  return (
-    <TooltipProvider>
-      <Tooltip {...props}>
-        <TooltipTrigger asChild>{children}</TooltipTrigger>
-        <TooltipContent side={side} className={className}>
-          {tooltip}
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  );
-};
-
-export {
-  Message,
-  MessageAvatar,
-  MessageContent,
-  MessageActions,
-  MessageAction,
-};
+  return null;
+}

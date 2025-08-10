@@ -11,7 +11,7 @@ import {
 } from '@/lib/hooks/chat';
 import { CommandHistory } from './command-history';
 import { DrawerHistory } from './drawer-history';
-import { List } from 'lucide-react';
+import { TextSearch } from 'lucide-react';
 
 type HistoryTriggerProps = {
   hasSidebar: boolean;
@@ -58,7 +58,7 @@ export function HistoryTrigger({
       aria-label='Search'
       tabIndex={isMobile ? -1 : 0}
     >
-      {icon || <List size={24} />}
+      {icon || <TextSearch size={24} />}
       {label}
     </button>
   );

@@ -116,7 +116,7 @@ export function useUpdateMessage() {
     mutationFn: async (params: UpdateMessageParams): Promise<AiMessage> => {
       const supabase = createClient();
 
-      const updateData: any = {};
+      const updateData: Partial<AiMessage> = {};
       if (params.content !== undefined) updateData.content = params.content;
       if (params.metadata !== undefined) updateData.metadata = params.metadata;
 
@@ -138,7 +138,7 @@ export function useUpdateMessage() {
 
       let conversationId: string | null = null;
 
-      for (const [queryKey, messages] of conversationQueries) {
+      for (const [messages] of conversationQueries) {
         if (Array.isArray(messages)) {
           const message = messages.find(
             (m: AiMessage) => m.id === params.messageId
