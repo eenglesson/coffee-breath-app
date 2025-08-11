@@ -22,7 +22,7 @@ export function LinkMarkdown({
       href={href}
       target='_blank'
       rel='noopener noreferrer'
-      className='bg-muted text-muted-foreground hover:bg-muted-foreground/30 hover:text-primary inline-flex h-5 max-w-32 items-center gap-1 overflow-hidden rounded-full py-0 pr-2 pl-0.5 text-xs leading-none overflow-ellipsis whitespace-nowrap no-underline transition-colors duration-150'
+      className='bg-muted text-muted-foreground hover:bg-muted-foreground/30 hover:text-primary inline-flex h-5 max-w-32 items-center gap-1 overflow-hidden rounded-full py-0 pr-2 pl-1 text-xs leading-none overflow-ellipsis whitespace-nowrap no-underline transition-colors duration-150'
     >
       <Image
         src={`https://www.google.com/s2/favicons?sz=64&domain_url=${encodeURIComponent(
@@ -31,10 +31,10 @@ export function LinkMarkdown({
         alt={`${domain} favicon`}
         width={14}
         height={14}
-        className='size-3.5 rounded-full'
+        className='size-3.5 rounded-full align-text-bottom'
         unoptimized
       />
-      <span className='overflow-hidden font-normal text-ellipsis whitespace-nowrap'>
+      <span className='overflow-hidden font-normal text-ellipsis whitespace-nowrap leading-[1.2]'>
         {domain.replace('www.', '')}
       </span>
     </a>

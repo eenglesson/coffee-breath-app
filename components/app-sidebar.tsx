@@ -2,9 +2,7 @@
 
 import * as React from 'react';
 import {
-  Bot,
   Calculator,
-  Coffee,
   MessageSquareText,
   Omega,
   Presentation,
@@ -50,28 +48,14 @@ const paths = {
       icon: Users,
     },
     {
-      title: 'Ai',
-      // url: '/dashboard/ai-assistant',
-      url: '#',
-      icon: Bot,
-      isActive: true,
-      items: [
-        {
-          title: 'Coffee breath AI',
-          icon: Coffee,
-          url: '/dashboard/coffee-breath-ai',
-        },
-        {
-          title: 'Create Lesson Plan',
-          icon: Presentation,
-          url: '/dashboard/create-lesson-plan',
-        },
-        {
-          title: 'Create Questions',
-          url: '/dashboard/create-questions',
-          icon: MessageSquareText,
-        },
-      ],
+      title: 'Create Lesson Plan',
+      icon: Presentation,
+      url: '/dashboard/create-lesson-plan',
+    },
+    {
+      title: 'Create Questions',
+      url: '/dashboard/create-questions',
+      icon: MessageSquareText,
     },
   ],
 };
