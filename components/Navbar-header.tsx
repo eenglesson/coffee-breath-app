@@ -35,16 +35,16 @@ export default function NavbarHeader() {
           <DynamicBreadcrumb />
         </div>
         {isCreateQuestionsPath && (
-          <div className='flex items-center gap-3'>
+          <div className='flex items-center gap-2'>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
                     aria-label='New Chat'
-                    className='text-muted-foreground hover:text-foreground hover:bg-muted bg-background pointer-events-auto rounded-full p-1.5 transition-colors'
+                    className='text-muted-foreground hover:text-foreground hover:bg-muted bg-background pointer-events-auto rounded-full p-3 transition-colors'
                     onClick={() => router.push('/dashboard/create-questions')}
                   >
-                    <SquarePen size={24} strokeWidth={1.5} />
+                    <SquarePen size={18} />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent>
