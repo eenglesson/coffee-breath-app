@@ -1,5 +1,11 @@
 import { Button } from '@/components/ui/button';
-import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerTrigger,
+  DrawerHeader,
+  DrawerTitle,
+} from '@/components/ui/drawer';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import {
@@ -10,7 +16,7 @@ import {
 import { ConversationWithPreview } from '@/lib/types/chat';
 import { Check, Search, Pencil, Trash2, X } from 'lucide-react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
+// import { useParams } from 'next/navigation';
 import { useCallback, useMemo, useState } from 'react';
 import { formatDate, groupConversationsByDate } from './utils';
 
@@ -35,7 +41,7 @@ export function DrawerHistory({
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
-  const params = useParams<{ chatId: string }>();
+  // const params = useParams<{ chatId: string }>();
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
@@ -200,9 +206,8 @@ export function DrawerHistory({
             <div
               className='group flex items-center justify-between rounded-lg px-2 py-1.5'
               onClick={() => {
-                if (params.chatId === conversation.id) {
-                  handleOpenChange(false);
-                }
+                // Close the drawer on selection regardless of current route
+                handleOpenChange(false);
               }}
             >
               <Link
@@ -253,7 +258,6 @@ export function DrawerHistory({
     ),
     [
       handleOpenChange,
-      params.chatId,
       editingId,
       deletingId,
       editTitle,
@@ -275,6 +279,9 @@ export function DrawerHistory({
         <TooltipContent>History</TooltipContent>
       </Tooltip>
       <DrawerContent>
+        <DrawerHeader className='sr-only'>
+          <DrawerTitle>History</DrawerTitle>
+        </DrawerHeader>
         <div className='flex h-dvh max-h-[80vh] flex-col'>
           <div className='border-b p-4 pb-3'>
             <div className='relative'>

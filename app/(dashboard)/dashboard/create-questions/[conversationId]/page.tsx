@@ -18,7 +18,7 @@ export default async function ConversationPage({ params }: PageProps) {
   }
 
   return (
-    <div>
+    <div className='h-full w-full'>
       <ChatInterface conversationId={conversationId} />
     </div>
   );

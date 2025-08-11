@@ -12,7 +12,7 @@ export default async function page() {
   console.log(authUser);
 
   return (
-    <div>
+    <div className='h-full w-full'>
       <ChatInterface />
     </div>
   );

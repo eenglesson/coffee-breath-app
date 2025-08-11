@@ -506,6 +506,8 @@ export function CommandHistory({
             }
             if (!editingId && !deletingId) {
               router.push(`/dashboard/create-questions/${conversation.id}`);
+              // Close the command history after navigating
+              setIsOpen(false);
             }
           }}
           className={cn(

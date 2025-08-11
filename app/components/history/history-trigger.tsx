@@ -58,7 +58,7 @@ export function HistoryTrigger({
       aria-label='Search'
       tabIndex={isMobile ? -1 : 0}
     >
-      {icon || <TextSearch size={24} />}
+      {icon || <TextSearch size={24} strokeWidth={1.5} />}
       {label}
     </button>
   );

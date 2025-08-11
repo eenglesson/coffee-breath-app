@@ -47,7 +47,7 @@ function ChatInput({
         <div className='flex flex-col'>
           <PromptInputTextarea
             placeholder={placeholder}
-            className='min-h-[44px] pt-3 pl-4 text-base leading-[1.3] sm:text-base md:text-base'
+            className='min-h-[44px] text-foreground pt-3 pl-4 text-base leading-[1.3] sm:text-base md:text-base dark:bg-transparent'
             disabled={disabled}
           />
 
