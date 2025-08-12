@@ -42,7 +42,7 @@ function MessageBubble({
       <div className='flex justify-end'>
         <div className='max-w-[70%]'>
           <MessageContent
-            className='bg-accent relative rounded-3xl px-5 py-2.5'
+            className='bg-accent relative rounded-3xl rounded-br-md px-5 py-2.5'
             markdown={true}
             components={{
               h1: ({ children }) => <p>{children}</p>,
