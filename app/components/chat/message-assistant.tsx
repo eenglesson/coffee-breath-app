@@ -39,7 +39,7 @@ export function MessageAssistant({
   return (
     <Message
       className={cn(
-        'group flex w-full max-w-3xl flex-1 items-start gap-4 px-6 pb-2',
+        'group flex w-full max-w-3xl flex-1 items-start gap-4 px-2 sm:px-4 pb-2',
         hasScrollAnchor && 'min-h-scroll-anchor',
         className
       )}
@@ -65,7 +65,7 @@ export function MessageAssistant({
         {Boolean(isLastStreaming || contentNullOrEmpty) ? null : (
           <MessageActions
             className={cn(
-              '-ml-2 flex gap-0 opacity-0 transition-opacity group-hover:opacity-100'
+              '-ml-2 flex gap-0 sm:opacity-0 transition-opacity duration-0 opacity-100 sm:group-hover:opacity-100'
             )}
           >
             <MessageAction

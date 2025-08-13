@@ -61,25 +61,27 @@ export default function ChatInterface({
     const prev = prevStatusRef.current;
     if ((prev === 'streaming' || prev === 'submitted') && status === 'ready') {
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
-      if (propConversationId) {
+      const idForInvalidation = propConversationId || conversationId;
+      if (idForInvalidation) {
         queryClient.invalidateQueries({
-          queryKey: ['messages', propConversationId],
+          queryKey: ['messages', idForInvalidation],
         });
         queryClient.invalidateQueries({
-          queryKey: ['conversation-messages-preview', propConversationId],
+          queryKey: ['conversation-messages-preview', idForInvalidation],
         });
       }
     }
     prevStatusRef.current = status;
-  }, [status, propConversationId, queryClient]);
+  }, [status, propConversationId, conversationId, queryClient]);
 
   // Load existing messages when conversation ID changes
   useEffect(() => {
     const loadMessages = async () => {
-      if (propConversationId) {
+      const idToLoad = propConversationId || conversationId;
+      if (idToLoad) {
         setIsLoadingMessages(true);
         try {
-          const dbMessages = await getConversationMessages(propConversationId);
+          const dbMessages = await getConversationMessages(idToLoad);
           const uiMessages = convertDbMessagesToUIMessages(dbMessages);
           setMessages(uiMessages);
         } catch (error) {
@@ -94,7 +96,7 @@ export default function ChatInterface({
     };
 
     loadMessages();
-  }, [propConversationId, setMessages]);
+  }, [propConversationId, conversationId, setMessages]);
 
   // Sync internal conversationId state with prop changes
   useEffect(() => {

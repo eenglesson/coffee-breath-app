@@ -48,7 +48,6 @@ export function Message({
         onReload={onReload}
         onEdit={onEdit}
         id={id}
-        onDelete={() => {}}
         hasScrollAnchor={hasScrollAnchor}
         // attachments={attachments}
         className={className}

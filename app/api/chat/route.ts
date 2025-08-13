@@ -11,7 +11,12 @@ export async function POST(req: Request) {
     const {
       messages,
       conversationId,
-    }: { messages: UIMessage[]; conversationId?: string } = await req.json();
+      searchMode,
+    }: {
+      messages: UIMessage[];
+      conversationId?: string;
+      searchMode?: string;
+    } = await req.json();
 
     // Verify user is authenticated
     const supabase = await createClient();
@@ -45,6 +50,15 @@ export async function POST(req: Request) {
       system:
         'You are a helpful assistant for teachers to create educational content and questions for students.',
       messages: convertToModelMessages(messages),
+      providerOptions: {
+        xai: {
+          searchParameters: {
+            mode: searchMode || 'off',
+            returnCitations: true,
+            maxSearchResults: 5,
+          },
+        },
+      },
     });
 
     return result.toUIMessageStreamResponse({

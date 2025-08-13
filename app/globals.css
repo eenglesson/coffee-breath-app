@@ -194,11 +194,11 @@
 [data-radix-popper-arrow] {
   display: none !important;
 }
-/* code {
+code {
   font-family: var(--font-geist-mono);
   font-feature-settings: var(--default-mono-font-feature-settings);
   font-variation-settings: var(--default-mono-font-variation-settings);
-} */
+}
 @layer base {
   * {
     @apply border-border outline-ring/50;

@@ -5,6 +5,7 @@ import { cn } from '@/lib/utils';
 import { type VariantProps } from 'class-variance-authority';
 import { ChevronDown } from 'lucide-react';
 import { useStickToBottomContext } from 'use-stick-to-bottom';
+import { useEffect } from 'react';
 
 export type ScrollButtonProps = {
   className?: string;
@@ -20,6 +21,18 @@ function ScrollButton({
 }: ScrollButtonProps) {
   const { isAtBottom, scrollToBottom } = useStickToBottomContext();
 
+  useEffect(() => {
+    console.log('ScrollButton: isAtBottom changed to', isAtBottom);
+  }, [isAtBottom]);
+
+  const handleClick = () => {
+    console.log(
+      'ScrollButton: Clicking to scroll to bottom. Current isAtBottom:',
+      isAtBottom
+    );
+    scrollToBottom();
+  };
+
   return (
     <Button
       variant={variant}
@@ -31,7 +44,7 @@ function ScrollButton({
           : 'pointer-events-none translate-y-4 scale-95 opacity-0',
         className
       )}
-      onClick={() => scrollToBottom()}
+      onClick={handleClick}
       {...props}
     >
       <ChevronDown className='h-5 w-5' />

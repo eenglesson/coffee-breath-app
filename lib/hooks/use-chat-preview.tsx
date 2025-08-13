@@ -28,7 +28,7 @@ export function useChatPreview(): UseChatPreviewReturn {
     isLoading,
     error: queryError,
   } = useQuery({
-    queryKey: ['conversation-messages-preview', conversationId],
+    queryKey: ['messages', conversationId],
     queryFn: () =>
       conversationId
         ? getConversationMessages(conversationId)

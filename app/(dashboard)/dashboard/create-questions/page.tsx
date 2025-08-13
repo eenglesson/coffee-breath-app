@@ -9,7 +9,6 @@ export default async function page() {
   if (!authUser || !authUser.user) {
     redirect('/auth/login');
   }
-  console.log(authUser);
 
   return (
     <div className='h-full w-full'>

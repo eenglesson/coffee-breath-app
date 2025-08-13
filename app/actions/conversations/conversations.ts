@@ -207,3 +207,51 @@ export async function getConversationById(
 
   return data;
 }
+
+// Returns conversations with preview and message_count for the authenticated user
+export async function getUserConversationsWithPreview() {
+  const supabase = await createClient();
+  const { data: authUser } = await supabase.auth.getUser();
+
+  if (!authUser || !authUser.user) {
+    throw new Error('Unauthorized');
+  }
+
+  const { data, error } = await supabase
+    .from('ai_conversations')
+    .select(
+      `
+      *,
+      messages:ai_messages(
+        id,
+        conversation_id,
+        content,
+        sender,
+        created_at,
+        metadata
+      )
+    `
+    )
+    .eq('teacher_id', authUser.user.id)
+    .order('updated_at', { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to get conversations: ${error.message}`);
+  }
+
+  // Append preview (last 3) and message_count
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const result = (data || []).map((conversation: any) => {
+    const messages = Array.isArray(conversation.messages)
+      ? conversation.messages
+      : [];
+    return {
+      ...conversation,
+      last_message: messages[messages.length - 1],
+      message_count: messages.length,
+      preview: messages.slice(-3),
+    };
+  });
+
+  return result;
+}

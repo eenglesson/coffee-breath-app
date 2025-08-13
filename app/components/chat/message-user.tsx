@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 // import { Message as MessageType } from '@ai-sdk/react';
-import { Check, CopyIcon, Trash } from 'lucide-react';
+import { Check, CopyIcon } from 'lucide-react';
 import { useRef, useState } from 'react';
 
 export type MessageUserProps = {
@@ -20,7 +20,6 @@ export type MessageUserProps = {
   copyToClipboard: () => void;
   onEdit: (id: string, newText: string) => void;
   onReload: () => void;
-  onDelete: (id: string) => void;
   id: string;
   className?: string;
 };
@@ -33,7 +32,6 @@ export function MessageUser({
   copyToClipboard,
   onEdit,
   onReload,
-  onDelete,
   id,
   className,
 }: MessageUserProps) {
@@ -54,14 +52,10 @@ export function MessageUser({
     setIsEditing(false);
   };
 
-  const handleDelete = () => {
-    onDelete(id);
-  };
-
   return (
     <MessageContainer
       className={cn(
-        'group flex w-full max-w-3xl flex-col items-end gap-0.5 px-6 pb-2',
+        'group flex w-full max-w-3xl flex-col items-end gap-0.5 sm:px-2 px-4 pb-2',
         hasScrollAnchor && 'min-h-scroll-anchor',
         className
       )}
@@ -120,7 +114,7 @@ export function MessageUser({
           {children}
         </MessageContent>
       )}
-      <MessageActions className='flex gap-0 opacity-0 transition-opacity duration-0 group-hover:opacity-100'>
+      <MessageActions className='flex gap-0 sm:opacity-0 transition-opacity duration-0 opacity-100 sm:group-hover:opacity-100'>
         <MessageAction tooltip={copied ? 'Copied!' : 'Copy text'} side='bottom'>
           <button
             className='hover:bg-accent/60 text-muted-foreground hover:text-foreground flex size-7.5 items-center justify-center rounded-full bg-transparent transition'
@@ -150,16 +144,16 @@ export function MessageUser({
             <PencilSimple className="size-4" />
           </button>
         </MessageAction> */}
-        <MessageAction tooltip='Delete' side='bottom'>
+        {/* <MessageAction tooltip='Delete' side='bottom'>
           <button
             className='hover:bg-accent/60 text-muted-foreground hover:text-foreground flex size-7.5 items-center justify-center rounded-full bg-transparent transition'
             aria-label='Delete'
-            onClick={handleDelete}
+            onClick={() => {}}
             type='button'
           >
             <Trash className='size-4' />
           </button>
-        </MessageAction>
+        </MessageAction> */}
       </MessageActions>
     </MessageContainer>
   );

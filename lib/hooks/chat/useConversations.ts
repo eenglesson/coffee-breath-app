@@ -2,7 +2,6 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@/lib/supabase/client';
 import {
   ConversationWithPreview,
   AiConversation,
@@ -11,41 +10,19 @@ import {
   CreateConversationResponse,
 } from '@/lib/types/chat';
 import { toast } from 'sonner';
+import {
+  createConversation as saCreateConversation,
+  updateConversationTitle as saUpdateConversationTitle,
+  deleteConversation as saDeleteConversation,
+  getUserConversationsWithPreview as saGetUserConversationsWithPreview,
+} from '@/app/actions/conversations/conversations';
 
 // Hook to fetch all conversations for a teacher
 export function useConversationHistory(teacherId: string) {
   return useQuery({
     queryKey: ['conversations', teacherId],
-    queryFn: async (): Promise<ConversationWithPreview[]> => {
-      const supabase = createClient();
-
-      const { data, error } = await supabase
-        .from('ai_conversations')
-        .select(
-          `
-          *,
-          messages:ai_messages(
-            id,
-            conversation_id,
-            content,
-            sender,
-            created_at,
-            metadata
-          )
-        `
-        )
-        .eq('teacher_id', teacherId)
-        .order('updated_at', { ascending: false });
-
-      if (error) throw error;
-
-      return data.map((conversation) => ({
-        ...conversation,
-        last_message: conversation.messages[conversation.messages.length - 1],
-        message_count: conversation.messages.length,
-        preview: conversation.messages.slice(-3), // Last 3 messages for preview
-      }));
-    },
+    queryFn: async (): Promise<ConversationWithPreview[]> =>
+      saGetUserConversationsWithPreview(),
     enabled: !!teacherId,
     staleTime: 30 * 60 * 1000, // 30 minutes - conversations rarely change
     gcTime: 60 * 60 * 1000, // 1 hour - keep in cache longer
@@ -61,37 +38,23 @@ export function useCreateConversation() {
     mutationFn: async (
       params: CreateConversationParams
     ): Promise<CreateConversationResponse> => {
-      const supabase = createClient();
+      // Create conversation via server action
+      const conversation = await saCreateConversation(
+        params.title || 'New Conversation'
+      );
 
-      // Create conversation
-      const { data: conversation, error: convError } = await supabase
-        .from('ai_conversations')
-        .insert({
-          teacher_id: params.teacherId,
-          student_id: params.studentId || null,
-          title: params.title || 'New Conversation',
-        })
-        .select()
-        .single();
-
-      if (convError) throw convError;
-
-      // Add first message if provided
+      // Add first message if provided using server action from messages
       let firstMessage = undefined;
       if (params.firstMessage) {
-        const { data: message, error: msgError } = await supabase
-          .from('ai_messages')
-          .insert({
-            conversation_id: conversation.id,
-            content: params.firstMessage,
-            sender: 'user',
-            metadata: null,
-          })
-          .select()
-          .single();
-
-        if (msgError) throw msgError;
-        firstMessage = message;
+        const { addMessageToConversation } = await import(
+          '@/app/actions/messages/messages'
+        );
+        firstMessage = await addMessageToConversation(
+          conversation.id,
+          params.firstMessage,
+          'user',
+          null
+        );
       }
 
       return { conversation, firstMessage };
@@ -161,20 +124,7 @@ export function useUpdateConversationTitle() {
     mutationFn: async (
       params: UpdateConversationTitleParams
     ): Promise<AiConversation> => {
-      const supabase = createClient();
-
-      const { data, error } = await supabase
-        .from('ai_conversations')
-        .update({
-          title: params.title,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', params.conversationId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
+      return saUpdateConversationTitle(params.conversationId, params.title);
     },
     onMutate: async (params) => {
       // Optimistically update the title in cache
@@ -217,21 +167,7 @@ export function useDeleteConversation() {
 
   return useMutation({
     mutationFn: async (conversationId: string): Promise<string> => {
-      const supabase = createClient();
-
-      // Delete messages first (cascade should handle this, but being explicit)
-      await supabase
-        .from('ai_messages')
-        .delete()
-        .eq('conversation_id', conversationId);
-
-      // Delete conversation
-      const { error } = await supabase
-        .from('ai_conversations')
-        .delete()
-        .eq('id', conversationId);
-
-      if (error) throw error;
+      await saDeleteConversation(conversationId);
       return conversationId;
     },
     onMutate: async (conversationId) => {

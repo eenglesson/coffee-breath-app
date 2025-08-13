@@ -1,9 +1,13 @@
 'use client';
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { createClient } from '@/lib/supabase/client';
 import { AiMessage, UpdateMessageParams } from '@/lib/types/chat';
 import { toast } from 'sonner';
+import {
+  getConversationMessages as saGetConversationMessages,
+  addMessageToConversation as saAddMessageToConversation,
+} from '@/app/actions/messages/messages';
+import { createClient } from '@/lib/supabase/client';
 
 // Hook to fetch messages for a specific conversation
 export function useConversationMessages(conversationId: string | null) {
@@ -11,17 +15,7 @@ export function useConversationMessages(conversationId: string | null) {
     queryKey: ['messages', conversationId],
     queryFn: async (): Promise<AiMessage[]> => {
       if (!conversationId) return [];
-
-      const supabase = createClient();
-
-      const { data, error } = await supabase
-        .from('ai_messages')
-        .select('*')
-        .eq('conversation_id', conversationId)
-        .order('created_at', { ascending: true });
-
-      if (error) throw error;
-      return data;
+      return saGetConversationMessages(conversationId);
     },
     enabled: !!conversationId,
     staleTime: 10 * 60 * 1000, // 10 minutes - messages only change when added
@@ -38,26 +32,14 @@ export function useAddMessage() {
     mutationFn: async (
       newMessage: Omit<AiMessage, 'id' | 'created_at'>
     ): Promise<AiMessage> => {
-      const supabase = createClient();
-
-      const { data, error } = await supabase
-        .from('ai_messages')
-        .insert({
-          ...newMessage,
-          created_at: new Date().toISOString(),
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-
-      // Update conversation's updated_at timestamp
-      await supabase
-        .from('ai_conversations')
-        .update({ updated_at: new Date().toISOString() })
-        .eq('id', newMessage.conversation_id);
-
-      return data;
+      const senderUnion =
+        newMessage.sender === 'assistant' ? 'assistant' : 'user';
+      return saAddMessageToConversation(
+        newMessage.conversation_id,
+        newMessage.content,
+        senderUnion,
+        newMessage.metadata ?? null
+      );
     },
     onMutate: async (newMessage) => {
       // Cancel outgoing refetches
