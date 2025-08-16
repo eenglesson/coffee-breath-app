@@ -2,7 +2,7 @@
 
 import { useChat } from '@ai-sdk/react';
 import { useState, useEffect, useRef } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import { createConversation } from '@/app/actions/conversations/conversations';
 import { getConversationMessages } from '@/app/actions/messages/messages';
@@ -43,17 +43,36 @@ export default function ChatInterface({
     propConversationId || null
   );
   const [input, setInput] = useState('');
-  const [isLoadingMessages, setIsLoadingMessages] = useState(false);
+
+  // Use TanStack Query v5 to load messages - handles caching, deduplication, and race conditions automatically
+  const currentConversationId = propConversationId || conversationId;
+  const { data: dbMessages, isLoading: isLoadingMessages } = useQuery({
+    queryKey: ['messages', currentConversationId],
+    queryFn: () => getConversationMessages(currentConversationId!),
+    enabled: !!currentConversationId,
+    staleTime: 15 * 60 * 1000, // 15 minutes - same as useChatPreview for consistency
+    gcTime: 30 * 60 * 1000, // 30 minutes cache retention
+  });
 
   const { messages, sendMessage, regenerate, status, setMessages } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/chat',
     }),
-
     onError: (error) => {
       console.error('useChat error:', error);
     },
   });
+
+  // Update useChat messages when TanStack Query data changes
+  useEffect(() => {
+    if (dbMessages && Array.isArray(dbMessages)) {
+      const uiMessages = convertDbMessagesToUIMessages(dbMessages);
+      setMessages(uiMessages);
+    } else if (!currentConversationId) {
+      // Clear messages if no conversation ID
+      setMessages([]);
+    }
+  }, [dbMessages, currentConversationId, setMessages]);
 
   // Invalidate caches when streaming completes (AI SDK v5: no per-send onFinish)
   const prevStatusRef = useRef(status);
@@ -73,30 +92,6 @@ export default function ChatInterface({
     }
     prevStatusRef.current = status;
   }, [status, propConversationId, conversationId, queryClient]);
-
-  // Load existing messages when conversation ID changes
-  useEffect(() => {
-    const loadMessages = async () => {
-      const idToLoad = propConversationId || conversationId;
-      if (idToLoad) {
-        setIsLoadingMessages(true);
-        try {
-          const dbMessages = await getConversationMessages(idToLoad);
-          const uiMessages = convertDbMessagesToUIMessages(dbMessages);
-          setMessages(uiMessages);
-        } catch (error) {
-          console.error('Failed to load conversation messages:', error);
-        } finally {
-          setIsLoadingMessages(false);
-        }
-      } else {
-        // Clear messages if no conversation ID
-        setMessages([]);
-      }
-    };
-
-    loadMessages();
-  }, [propConversationId, conversationId, setMessages]);
 
   // Sync internal conversationId state with prop changes
   useEffect(() => {
