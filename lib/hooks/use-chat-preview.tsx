@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { getConversationMessages } from '@/app/actions/messages/messages';
+import { useConversationMessages } from '@/lib/hooks/chat/useMessages';
 import type { AiMessage } from '@/lib/types/chat';
 
 interface ChatMessage {
@@ -22,21 +21,11 @@ export function useChatPreview(): UseChatPreviewReturn {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Use TanStack Query to fetch messages for the conversation
   const {
-    data: rawMessages,
+    data: rawMessages = [],
     isLoading,
     error: queryError,
-  } = useQuery({
-    queryKey: ['messages', conversationId],
-    queryFn: () =>
-      conversationId
-        ? getConversationMessages(conversationId)
-        : Promise.resolve(null),
-    enabled: !!conversationId,
-    staleTime: 15 * 60 * 1000, // 15 minutes - messages rarely change
-    gcTime: 30 * 60 * 1000, // 30 minutes cache
-  });
+  } = useConversationMessages(conversationId);
 
   // Transform AiMessage[] to ChatMessage[] format
   const messages: ChatMessage[] =

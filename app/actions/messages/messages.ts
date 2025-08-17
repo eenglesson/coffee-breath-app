@@ -2,7 +2,6 @@
 
 import { createClient } from '@/lib/supabase/server';
 import { Database } from '@/database.types';
-import { revalidatePath } from 'next/cache';
 
 // Type aliases for convenience
 type Message = Database['public']['Tables']['ai_messages']['Row'];
@@ -57,7 +56,8 @@ export async function addMessageToConversation(
     .update({ updated_at: new Date().toISOString() })
     .eq('id', conversationId);
 
-  revalidatePath(`/dashboard/create-questions/${conversationId}`);
+  // Avoid route-level revalidation here to prevent client remounts that wipe in-flight chat UI.
+  // The client is responsible for invalidating and refetching via TanStack Query after streaming completes.
   return data;
 }
 

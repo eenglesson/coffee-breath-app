@@ -36,7 +36,7 @@ export default async function DashboardLayout({
             <SidebarInset>
               <NavbarHeader />
 
-              <main className='flex flex-1 flex-col gap-2 p-2 sm:p-4 pt-0'>
+              <main className='flex flex-1 flex-col gap-2 p-2 sm:p-4 pt-0 '>
                 {children}
               </main>
             </SidebarInset>

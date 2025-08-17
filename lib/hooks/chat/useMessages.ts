@@ -3,10 +3,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AiMessage, UpdateMessageParams } from '@/lib/types/chat';
 import { toast } from 'sonner';
-import {
-  getConversationMessages as saGetConversationMessages,
-  addMessageToConversation as saAddMessageToConversation,
-} from '@/app/actions/messages/messages';
+import { addMessageToConversation as saAddMessageToConversation } from '@/app/actions/messages/messages';
 import { createClient } from '@/lib/supabase/client';
 
 // Hook to fetch messages for a specific conversation
@@ -15,7 +12,14 @@ export function useConversationMessages(conversationId: string | null) {
     queryKey: ['messages', conversationId],
     queryFn: async (): Promise<AiMessage[]> => {
       if (!conversationId) return [];
-      return saGetConversationMessages(conversationId);
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('ai_messages')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: true });
+      if (error) throw new Error(`Failed to load messages: ${error.message}`);
+      return (data ?? []) as AiMessage[];
     },
     enabled: !!conversationId,
     staleTime: 10 * 60 * 1000, // 10 minutes - messages only change when added

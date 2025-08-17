@@ -2,15 +2,16 @@
 
 import { useChat } from '@ai-sdk/react';
 import { useState, useEffect, useRef } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import { createConversation } from '@/app/actions/conversations/conversations';
-import { getConversationMessages } from '@/app/actions/messages/messages';
+// import { getConversationMessages } from '@/app/actions/messages/messages';
 import { ChatInput } from './chat-input';
 import { Conversation } from './conversation';
 import { Database } from '@/database.types';
 import { DefaultChatTransport } from 'ai';
 import { convertDbMessagesToUIMessages } from '@/lib/utils/message-conversion';
+import { useConversationMessages } from '@/lib/hooks/chat/useMessages';
 
 type DbMessage = Database['public']['Tables']['ai_messages']['Row'];
 
@@ -44,15 +45,10 @@ export default function ChatInterface({
   );
   const [input, setInput] = useState('');
 
-  // Use TanStack Query v5 to load messages - handles caching, deduplication, and race conditions automatically
+  // Use shared TanStack hook to load messages and leverage centralized cache keys and timings
   const currentConversationId = propConversationId || conversationId;
-  const { data: dbMessages, isLoading: isLoadingMessages } = useQuery({
-    queryKey: ['messages', currentConversationId],
-    queryFn: () => getConversationMessages(currentConversationId!),
-    enabled: !!currentConversationId,
-    staleTime: 15 * 60 * 1000, // 15 minutes - same as useChatPreview for consistency
-    gcTime: 30 * 60 * 1000, // 30 minutes cache retention
-  });
+  const { data: dbMessages = [], isLoading: isLoadingMessages } =
+    useConversationMessages(currentConversationId ?? null);
 
   const { messages, sendMessage, regenerate, status, setMessages } = useChat({
     transport: new DefaultChatTransport({
@@ -63,16 +59,17 @@ export default function ChatInterface({
     },
   });
 
-  // Update useChat messages when TanStack Query data changes
+  // Minimal, safe hydration: when a conversation loads and chat is idle,
+  // seed useChat only if it currently has no messages.
   useEffect(() => {
-    if (dbMessages && Array.isArray(dbMessages)) {
-      const uiMessages = convertDbMessagesToUIMessages(dbMessages);
-      setMessages(uiMessages);
-    } else if (!currentConversationId) {
-      // Clear messages if no conversation ID
-      setMessages([]);
-    }
-  }, [dbMessages, currentConversationId, setMessages]);
+    const id = currentConversationId;
+    if (!id) return;
+    if (status !== 'ready') return;
+    if (!dbMessages || dbMessages.length === 0) return;
+    if (messages.length > 0) return;
+
+    setMessages(convertDbMessagesToUIMessages(dbMessages));
+  }, [currentConversationId, dbMessages, messages.length, setMessages, status]);
 
   // Invalidate caches when streaming completes (AI SDK v5: no per-send onFinish)
   const prevStatusRef = useRef(status);
@@ -95,8 +92,10 @@ export default function ChatInterface({
 
   // Sync internal conversationId state with prop changes
   useEffect(() => {
-    setConversationId(propConversationId || null);
-  }, [propConversationId]);
+    if (propConversationId && propConversationId !== conversationId) {
+      setConversationId(propConversationId);
+    }
+  }, [propConversationId, conversationId]);
 
   // Custom submit function
   const onSubmit = async (messageToSend: string) => {
@@ -117,17 +116,18 @@ export default function ChatInterface({
         );
         currentConversationId = conversation.id;
 
-        // Update URL without page reload using history API
-        window.history.replaceState(
-          {},
-          '',
-          `/dashboard/create-questions/${currentConversationId}`
-        );
+        // Update URL without forcing a remount; keep streaming in-place
+        try {
+          window.history.replaceState(
+            {},
+            '',
+            `/dashboard/create-questions/${currentConversationId}`
+          );
+        } catch {}
+
         setConversationId(currentConversationId);
-        // Ensure history shows the newly created conversation
         queryClient.invalidateQueries({ queryKey: ['conversations'] });
 
-        // Notify parent component about new conversation
         if (onNewConversation) {
           onNewConversation({
             id: conversation.id,
@@ -168,6 +168,8 @@ export default function ChatInterface({
     regenerate();
   };
 
+  // removed sessionStorage-based first-message handoff; we stream in-place
+
   // Starter prompt only for brand-new chats (no id in URL, no messages)
   const showStarter =
     !isLoadingMessages && !propConversationId && messages.length === 0;
@@ -194,7 +196,7 @@ export default function ChatInterface({
           <div className='flex-1 overflow-y-auto'>
             <Conversation
               messages={messages}
-              status={isLoadingMessages ? 'streaming' : status}
+              status={status}
               onEdit={handleEdit}
               onReload={handleReload}
             />
