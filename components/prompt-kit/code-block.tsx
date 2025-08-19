@@ -26,7 +26,7 @@ function CodeBlock({ children, className, ...props }: CodeBlockProps) {
 }
 
 export type CodeBlockCodeProps = {
-  code: string;
+  code?: string | null;
   language?: string;
   theme?: string;
   className?: string;
@@ -45,11 +45,26 @@ function CodeBlockCode({
 
   useEffect(() => {
     async function highlight() {
-      const html = await codeToHtml(code, {
-        lang: language,
-        theme: appTheme === 'dark' ? 'github-dark' : 'github-light',
-      });
-      setHighlightedHtml(html);
+      const source = typeof code === 'string' ? code : '';
+      const lang = language ?? 'tsx';
+      const themeName = appTheme === 'dark' ? 'github-dark' : 'github-light';
+
+      // If there's no code yet, skip highlighting to avoid errors
+      if (!source) {
+        setHighlightedHtml(null);
+        return;
+      }
+
+      try {
+        const html = await codeToHtml(source, {
+          lang,
+          theme: themeName,
+        });
+        setHighlightedHtml(html);
+      } catch (err) {
+        console.error('Code highlighting failed:', err);
+        setHighlightedHtml(null);
+      }
     }
     highlight();
   }, [code, language, appTheme]);

@@ -26,9 +26,13 @@ const TRANSITION = {
   repeatType: 'loop' as const,
 };
 
-export function Loader() {
+export function Loader({ className }: { className?: string }) {
   return (
-    <div className={`flex items-center justify-center ${DOT_SPACING}`}>
+    <div
+      className={`flex items-center ${
+        className ?? 'justify-center'
+      } ${DOT_SPACING}`}
+    >
       <Dot delay={DELAY_DOT_1} />
       <Dot delay={DELAY_DOT_2} />
       <Dot delay={DELAY_DOT_3} />

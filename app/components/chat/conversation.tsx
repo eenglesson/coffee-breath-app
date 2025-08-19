@@ -3,7 +3,6 @@ import {
   ChatContainerContent,
   ChatContainerRoot,
 } from '@/components/prompt-kit/chat-container';
-import { Loader } from '@/components/prompt-kit/loader';
 import { UIMessage as MessageType } from '@ai-sdk/react';
 import { useRef } from 'react';
 import { Message } from './message';
@@ -69,13 +68,6 @@ export function Conversation({
               </Message>
             );
           })}
-          {(status === 'streaming' || status === 'submitted') &&
-            messages.length > 0 &&
-            messages[messages.length - 1].role === 'user' && (
-              <div className='group min-h-scroll-anchor flex w-full max-w-3xl flex-col items-start gap-2 sm:px-2 px-4 pb-2'>
-                <Loader />
-              </div>
-            )}
         </ChatContainerContent>
         {/* <div className='absolute bottom-4 right-4 z-50'>
           <ScrollButton />

@@ -4,6 +4,7 @@ import {
   MessageActions,
   MessageContent,
 } from '@/components/prompt-kit/message';
+import { Loader } from '@/components/prompt-kit/loader';
 
 import { cn } from '@/lib/utils';
 import type { UIMessage as MessageAISDK } from '@ai-sdk/react';
@@ -35,6 +36,7 @@ export function MessageAssistant({
 }: MessageAssistantProps) {
   const contentNullOrEmpty = children === null || children === '';
   const isLastStreaming = status === 'streaming' && isLast;
+  const shouldShowInlineLoader = isLastStreaming && contentNullOrEmpty;
 
   return (
     <Message
@@ -50,7 +52,11 @@ export function MessageAssistant({
           isLast && 'pb-8'
         )}
       >
-        {contentNullOrEmpty ? null : (
+        {contentNullOrEmpty && shouldShowInlineLoader ? (
+          <div className='prose dark:prose-invert relative min-w-full bg-transparent p-0'>
+            <Loader className='justify-start' />
+          </div>
+        ) : contentNullOrEmpty ? null : (
           <MessageContent
             className={cn(
               'prose dark:prose-invert relative min-w-full bg-transparent p-0',
