@@ -13,6 +13,7 @@ export function convertDbMessagesToUIMessages(
     const uiMessage: UIMessage = {
       id: dbMessage.id,
       role: dbMessage.sender === 'user' ? 'user' : 'assistant',
+      metadata: dbMessage.metadata ?? undefined,
       parts: [
         {
           type: 'text',
@@ -43,6 +44,7 @@ export function convertUIMessageToDbMessage(
     conversation_id: conversationId,
     content,
     sender: uiMessage.role === 'user' ? 'user' : 'assistant',
-    metadata: null,
+  // Preserve any metadata attached to the UI message (e.g., token usage, timings, tool info)
+  metadata: (uiMessage.metadata as Database['public']['Tables']['ai_messages']['Insert']['metadata']) ?? null,
   };
 }

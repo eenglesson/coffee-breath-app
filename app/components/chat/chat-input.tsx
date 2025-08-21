@@ -7,8 +7,9 @@ import {
   PromptInputTextarea,
 } from '@/components/prompt-kit/prompt-input';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
-import { ArrowUp, Globe, MoreHorizontal, Paperclip } from 'lucide-react';
+import { ArrowUp, GlobeIcon, MoreHorizontal, Paperclip } from 'lucide-react';
 import type React from 'react';
 
 export interface ChatInputProps {
@@ -19,6 +20,8 @@ export interface ChatInputProps {
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  searchMode?: boolean;
+  onToggleSearch?: () => void;
 }
 
 function ChatInput({
@@ -29,6 +32,8 @@ function ChatInput({
   placeholder = 'Type your message...',
   disabled = false,
   className,
+  searchMode = false,
+  onToggleSearch,
 }: ChatInputProps) {
   const handleSubmit = () => {
     if (!value.trim() || isLoading || disabled) return;
@@ -64,13 +69,19 @@ function ChatInput({
                 </Button>
               </PromptInputAction>
 
-              <PromptInputAction tooltip='Search web'>
+              <PromptInputAction
+                tooltip={searchMode ? 'Web search enabled' : 'Search web'}
+              >
                 <Button
                   variant='outline'
-                  className='rounded-full'
-                  disabled={disabled}
+                  className={cn(
+                    'rounded-full',
+                    searchMode &&
+                      '!border-[#0091FF]/30  !text-[#0091FF] hover:!text-[#0091FF] !bg-[#0091FF]/10'
+                  )}
+                  onClick={onToggleSearch}
                 >
-                  <Globe size={18} />
+                  <GlobeIcon className='size-4' />
                   Search
                 </Button>
               </PromptInputAction>

@@ -3,8 +3,8 @@
 import { motion, easeInOut } from 'framer-motion';
 
 // Style constants
-const DOT_SIZE = 'size-2';
-const DOT_COLOR = 'bg-primary/60';
+const DOT_SIZE = 'size-1.5';
+const DOT_COLOR = 'bg-muted-foreground/25';
 const DOT_SPACING = 'gap-1';
 
 // Animation constants
@@ -29,7 +29,7 @@ const TRANSITION = {
 export function Loader({ className }: { className?: string }) {
   return (
     <div
-      className={`flex items-center ${
+      className={`flex items-center  ${
         className ?? 'justify-center'
       } ${DOT_SPACING}`}
     >

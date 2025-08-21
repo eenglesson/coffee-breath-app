@@ -1,4 +1,6 @@
+// Updated 'Conversation' component to handle tool parts
 'use client';
+
 import {
   ChatContainerContent,
   ChatContainerRoot,
@@ -43,12 +45,15 @@ export function Conversation({
             const hasScrollAnchor =
               isLast && messages.length > initialMessageCount.current;
 
-            // Extract text content from parts
+            // Extract text content from 'text' parts
             const textContent =
               message.parts
                 ?.filter((part) => part.type === 'text')
                 .map((part) => part.text)
                 .join('\n') || '';
+
+            // Only show the AI's reasoned answer (text parts)
+            const fullContent = textContent;
 
             return (
               <Message
@@ -63,8 +68,9 @@ export function Conversation({
                 parts={message.parts}
                 status={status}
                 onQuote={onQuote}
+                metadata={message.metadata}
               >
-                {textContent}
+                {fullContent}
               </Message>
             );
           })}

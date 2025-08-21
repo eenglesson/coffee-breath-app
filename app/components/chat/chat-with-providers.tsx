@@ -3,12 +3,14 @@
 import { ConversationsProvider } from '@/lib/context/ConversationsContext';
 import { ConversationSessionProvider } from '@/lib/context/ConversationSessionContext';
 import ChatInterface from './chat-interface';
+import { Database } from '@/database.types';
+
+type DbMessage = Database['public']['Tables']['ai_messages']['Row'];
 
 interface ChatWithProvidersProps {
   teacherId: string;
   conversationId?: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  initialMessages?: any[];
+  initialMessages?: DbMessage[];
   onNewConversation?: (conversation: {
     id: string;
     title: string;

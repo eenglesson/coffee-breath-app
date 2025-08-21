@@ -16,6 +16,7 @@ type MessageProps = {
   status?: 'streaming' | 'ready' | 'submitted' | 'error';
   className?: string;
   onQuote?: (text: string, messageId: string) => void;
+  metadata?: MessageType['metadata'];
 };
 
 export function Message({
@@ -31,6 +32,7 @@ export function Message({
   status,
   className,
   onQuote,
+  metadata,
 }: MessageProps) {
   const [copied, setCopied] = useState(false);
 
@@ -70,6 +72,7 @@ export function Message({
         className={className}
         messageId={id}
         onQuote={onQuote}
+        metadata={metadata}
       >
         {children}
       </MessageAssistant>

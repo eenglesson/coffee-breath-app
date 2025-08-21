@@ -44,6 +44,7 @@ export default function ChatInterface({
     propConversationId || null
   );
   const [input, setInput] = useState('');
+  const [searchMode, setSearchMode] = useState<boolean>(false);
 
   // Use shared TanStack hook to load messages and leverage centralized cache keys and timings
   const currentConversationId = propConversationId || conversationId;
@@ -56,6 +57,9 @@ export default function ChatInterface({
     }),
     onError: (error) => {
       console.error('useChat error:', error);
+    },
+    onFinish: (message) => {
+      console.log('useChat onFinish:', message);
     },
   });
 
@@ -149,6 +153,7 @@ export default function ChatInterface({
         body: {
           selectedStudents,
           conversationId: currentConversationId,
+          searchMode: searchMode ? 'on' : 'off',
         },
       }
     );
@@ -166,6 +171,10 @@ export default function ChatInterface({
 
   const handleReload = () => {
     regenerate();
+  };
+
+  const toggleSearch = () => {
+    setSearchMode((prev) => !prev);
   };
 
   // removed sessionStorage-based first-message handoff; we stream in-place
@@ -189,6 +198,8 @@ export default function ChatInterface({
             onSubmit={handleInputSubmit}
             isLoading={status === 'streaming'}
             placeholder='Ask me to create questions for your students...'
+            searchMode={searchMode}
+            onToggleSearch={toggleSearch}
           />
         </div>
       ) : (
@@ -209,6 +220,8 @@ export default function ChatInterface({
               onSubmit={handleInputSubmit}
               isLoading={status === 'streaming'}
               placeholder='Ask me to create questions for your students...'
+              searchMode={searchMode}
+              onToggleSearch={toggleSearch}
             />
           </div>
         </div>
