@@ -21,7 +21,7 @@ import {
 } from '@/components/ui/sidebar';
 import { Tables } from '@/database.types';
 
-// Sample data (unchanged)
+// Sample data (unchanged) - moved outside component to prevent recreation
 const paths = {
   teams: [
     {

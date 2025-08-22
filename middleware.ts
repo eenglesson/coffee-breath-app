@@ -7,7 +7,7 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Protect ALL routes, except auth callback and static assets
-    '/((?!auth/callback|_next/static|_next/image|favicon.ico).*)',
+    // Only protect dashboard routes, exclude static assets and API routes
+    '/((?!_next/static|_next/image|favicon.ico|api/).*)',
   ],
 };
