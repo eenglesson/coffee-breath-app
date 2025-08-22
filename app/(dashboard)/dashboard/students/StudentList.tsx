@@ -6,11 +6,14 @@ import {
   CardFooter,
   CardHeader,
 } from '@/components/ui/card';
-import { Edit, GraduationCap, Heart, Info } from 'lucide-react';
+import { Edit } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import EditStudentDialog from './EditStudentDialog';
 import { Tables } from '@/database.types';
 import { formatName } from '@/app/utils/formatName';
+
+import StudentBadge from '@/components/student-badge';
+import { formatDate } from '@/app/components/history/utils';
 
 interface StudentListProps {
   students: Tables<'students'>[];
@@ -40,21 +43,20 @@ export default function StudentList({
   const displayedStudents = isSearching ? searchResults : students;
 
   return (
-    <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4'>
+    <div className='grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4'>
       {displayedStudents.map((student) => (
         <Card
           key={student.id}
-          className='h-[26rem] hover:shadow-lg ease-in duration-75 2xl:h-[30rem] w-full flex flex-col overflow-hidden pb-0'
+          className='h-[24rem] flex-1 w-full flex flex-col overflow-hidden pb-4 gap-0'
         >
-          <CardHeader className='flex justify-between px-4'>
+          <CardHeader className='flex justify-between'>
             <aside>
               <h2 className='text-2xl font-semibold'>
                 {formatName(student.full_name)}
               </h2>
               <div className='flex items-center gap-2 text-sm text-muted-foreground'>
-                <GraduationCap size={24} strokeWidth={1.5} />
                 <span>
-                  Class •{' '}
+                  Class{' '}
                   {formatName(student.school_year, {
                     capitalizeLastLetter: true,
                   })}
@@ -69,41 +71,41 @@ export default function StudentList({
               <Edit />
             </Button>
           </CardHeader>
-          <CardContent className='flex-1 flex flex-col gap-4 overflow-hidden px-4'>
+          <CardContent className='flex items-center gap-2 overflow-x-auto scrollbar-hide flex-nowrap min-w-0 py-2'>
+            <StudentBadge type='math-whiz' />
+            <StudentBadge type='imaginative-mind' />
+            <StudentBadge type='group-energizer' />
+            <StudentBadge type='initiative-taker' />
+            <StudentBadge type='detail-detective' />
+            <StudentBadge type='question-star' />
+            <StudentBadge type='effort-champion' />
+            <StudentBadge type='image-savvy' />
+            <StudentBadge type='story-teller' />
+            <StudentBadge type='tech-explorer' />
+          </CardContent>
+          <CardContent className='flex flex-col mt-2 gap-4'>
             <aside className='flex-1 flex flex-col'>
               <div className='flex items-center gap-2 mb-1'>
-                <div className='p-1.5 rounded-full bg-secondary'>
-                  <Heart size={20} className='text-primary' />
-                </div>
-                <h3 className='text-lg font-semibold'>Interests</h3>
+                <h3 className='text-sm font-medium'>Interests</h3>
               </div>
-              <p className='leading-relaxed break-words text-accent-foreground line-clamp-3 overflow-hidden text-sm'>
-                {student.interests ?? 'None'}
+              <p className='leading-relaxed break-words text-muted-foreground line-clamp-3 overflow-hidden text-sm'>
+                {student.interests || 'No information provided'}
               </p>
             </aside>
             <aside className='flex-1 flex flex-col'>
               <div className='flex items-center gap-2 mb-1'>
-                <div className='p-1.5 rounded-full bg-secondary'>
-                  <Info size={20} className='text-primary' />
-                </div>
-                <h3 className='text-lg font-semibold'>Learning Style</h3>
+                <h3 className='text-sm font-medium'>Learning Style</h3>
               </div>
-              <p className='leading-relaxed break-words text-accent-foreground line-clamp-3 overflow-hidden text-sm'>
-                {student.learning_difficulties ?? 'None'}
+              <p className='leading-relaxed break-words text-muted-foreground line-clamp-3 overflow-hidden text-sm'>
+                {student.learning_difficulties || 'No information provided'}
               </p>
             </aside>
           </CardContent>
-          <CardFooter className='bg-secondary/50 flex w-full justify-center p-2'>
-            <span className='text-sm text-muted-foreground flex items-center justify-between flex-col'>
-              <span className='font-semibold pr-1'>Last Updated</span>
-              {student.updated_at
-                ? new Date(student.updated_at).toLocaleString('en-US', {
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                    hour12: false,
-                  })
-                : 'Never'}
+          <CardFooter className=' flex w-full justify-center mt-auto'>
+            <span className='text-sm text-muted-foreground flex items-center  gap-2'>
+              <div className='w-2 h-2 bg-green-500 rounded-full'></div>
+              Updated{' '}
+              {student.updated_at ? formatDate(student.updated_at) : 'Never'}
             </span>
           </CardFooter>
         </Card>

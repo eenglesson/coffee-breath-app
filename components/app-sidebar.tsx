@@ -3,9 +3,9 @@
 import * as React from 'react';
 import {
   Calculator,
+  ClipboardPen,
   MessageSquareText,
   Omega,
-  Presentation,
   SquareTerminal,
   Users,
 } from 'lucide-react';
@@ -49,12 +49,12 @@ const paths = {
     },
     {
       title: 'Create Lesson Plan',
-      icon: Presentation,
+      icon: ClipboardPen,
       url: '/dashboard/create-lesson-plan',
     },
     {
-      title: 'Create Questions',
-      url: '/dashboard/create-questions',
+      title: 'Ask Coffee Breath',
+      url: '/dashboard/ai-chat',
       icon: MessageSquareText,
     },
   ],

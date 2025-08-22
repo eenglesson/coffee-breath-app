@@ -18,10 +18,8 @@ export default function NavbarHeader() {
   const pathname = usePathname();
   const router = useRouter();
 
-  // Only show HistoryTrigger on create-questions paths
-  const isCreateQuestionsPath = pathname.startsWith(
-    '/dashboard/create-questions'
-  );
+  // Only show HistoryTrigger on ai-chat paths
+  const isCreateQuestionsPath = pathname.startsWith('/dashboard/ai-chat');
 
   return (
     <header className='sticky backdrop-blur supports-[backdrop-filter]:bg-background/85 z-5 top-0 flex h-16 shrink-0 items-center justify-between transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12'>
@@ -42,7 +40,7 @@ export default function NavbarHeader() {
                   <button
                     aria-label='New Chat'
                     className='text-muted-foreground hover:text-foreground hover:bg-muted pointer-events-auto rounded-full p-2 transition-colors'
-                    onClick={() => router.push('/dashboard/create-questions')}
+                    onClick={() => router.push('/dashboard/ai-chat')}
                   >
                     <SquarePen size={18} />
                   </button>

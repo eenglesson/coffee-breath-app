@@ -95,7 +95,7 @@ export function useCreateConversation() {
     },
     onSuccess: ({ conversation }) => {
       // Navigate to new conversation immediately
-      router.push(`/dashboard/create-questions/${conversation.id}`);
+      router.push(`/dashboard/ai-chat/${conversation.id}`);
     },
     onError: (err, variables, context) => {
       // Rollback optimistic updates
@@ -184,7 +184,7 @@ export function useDeleteConversation() {
       // Navigate away if we're currently viewing this conversation
       const currentPath = window.location.pathname;
       if (currentPath.includes(conversationId)) {
-        router.push('/dashboard/create-questions');
+        router.push('/dashboard/ai-chat');
       }
 
       toast.success('Conversation deleted');

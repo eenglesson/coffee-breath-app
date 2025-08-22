@@ -47,20 +47,27 @@ export async function getUserSchoolId() {
 }
 
 // Create a new student
-export async function createStudent(input: Tables<'students'>) {
+export async function createStudent(
+  input: Tables<'students'> & { badges?: string | null }
+) {
   const supabase = await createClient();
   try {
     const school_id = await getUserSchoolId();
 
-    const { error } = await supabase.from('students').insert([
-      {
-        full_name: input.full_name,
-        school_year: input.school_year,
-        interests: input.interests,
-        learning_difficulties: input.learning_difficulties,
-        school_id,
-      },
-    ]);
+    const insertData: any = {
+      full_name: input.full_name,
+      school_year: input.school_year,
+      interests: input.interests,
+      learning_difficulties: input.learning_difficulties,
+      school_id,
+    };
+
+    // Handle badges if provided (store as JSON string since database doesn't have badges column yet)
+    if (input.badges !== undefined) {
+      insertData.badges = input.badges;
+    }
+
+    const { error } = await supabase.from('students').insert([insertData]);
 
     if (error) {
       throw new Error(error.message);

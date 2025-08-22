@@ -106,8 +106,8 @@ export default function ChatInterface({
   const onSubmit = async (messageToSend: string) => {
     if (!messageToSend.trim()) return;
 
-    // Check if we're on create-questions page and this is the first message
-    const isCreateQuestionsPage = pathname === '/dashboard/create-questions';
+    // Check if we're on ai-chat page and this is the first message
+    const isCreateQuestionsPage = pathname === '/dashboard/ai-chat';
     const isFirstMessage = messages.length === 0;
 
     // Prefer the URL param id if present to avoid transient null state
@@ -126,7 +126,7 @@ export default function ChatInterface({
           window.history.replaceState(
             {},
             '',
-            `/dashboard/create-questions/${currentConversationId}`
+            `/dashboard/ai-chat/${currentConversationId}`
           );
         } catch {}
 

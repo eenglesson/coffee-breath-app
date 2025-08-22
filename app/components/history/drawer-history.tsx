@@ -211,7 +211,7 @@ export function DrawerHistory({
               }}
             >
               <Link
-                href={`/dashboard/create-questions/${conversation.id}`}
+                href={`/dashboard/ai-chat/${conversation.id}`}
                 key={conversation.id}
                 className='flex flex-1 flex-col items-start'
                 prefetch

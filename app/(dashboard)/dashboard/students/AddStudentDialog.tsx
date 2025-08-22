@@ -37,6 +37,7 @@ import { useSchoolYears } from '@/lib/context/SchoolYearContext';
 const studentSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   yearInSchool: z.string().min(1, 'Year in school is required'),
+
   interests: z.string().min(1, 'Interests are required'),
   learningDifficulties: z.string().optional(),
 });
@@ -136,6 +137,7 @@ export default function AddStudentDialog({ onClose }: AddStudentFormProps) {
                 </FormItem>
               )}
             />
+
             <FormField
               control={form.control}
               name='interests'

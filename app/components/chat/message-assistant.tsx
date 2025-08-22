@@ -9,7 +9,7 @@ import {
 import { Loader } from '@/components/prompt-kit/loader';
 import { cn } from '@/lib/utils';
 import type { UIMessage as MessageAISDK } from '@ai-sdk/react';
-import { Check, CopyIcon, RefreshCcw } from 'lucide-react';
+import { Check, ClipboardPen, CopyIcon, RefreshCcw } from 'lucide-react';
 import {
   Reasoning,
   ReasoningContent,
@@ -146,6 +146,15 @@ export function MessageAssistant({
                 ) : (
                   <CopyIcon className='size-4' />
                 )}
+              </Button>
+            </MessageAction>
+            <MessageAction
+              tooltip='Open in text editor (copies content)'
+              side='bottom'
+              delayDuration={0}
+            >
+              <Button variant='ghost' size='icon'>
+                <ClipboardPen className='size-4' />
               </Button>
             </MessageAction>
             {isLast ? (

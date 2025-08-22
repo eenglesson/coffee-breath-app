@@ -15,8 +15,8 @@ export function ConversationSessionProvider({
   const pathname = usePathname();
 
   const conversationId = useMemo(() => {
-    if (pathname?.startsWith('/dashboard/create-questions/')) {
-      const id = pathname.split('/dashboard/create-questions/')[1];
+    if (pathname?.startsWith('/dashboard/ai-chat/')) {
+      const id = pathname.split('/dashboard/ai-chat/')[1];
       // Handle 'new' route or empty as null (clean chat state)
       return id === 'new' || !id ? null : id;
     }

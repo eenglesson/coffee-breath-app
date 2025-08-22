@@ -160,10 +160,10 @@ The conversation state is derived from the URL:
 
 ```tsx
 // Clean chat state
-/dashboard/create-questions → conversationId = null
+/dashboard/ai-chat → conversationId = null
 
 // Existing conversation
-/dashboard/create-questions/uuid → conversationId = uuid
+/dashboard/ai-chat/uuid → conversationId = uuid
 ```
 
 ### ✅ Smart Caching
@@ -210,10 +210,10 @@ Failed operations automatically rollback optimistic updates:
 
 ### Starting New Conversation
 
-1. User visits `/dashboard/create-questions` (conversationId = null)
+1. User visits `/dashboard/ai-chat` (conversationId = null)
 2. User types first message
 3. `useCreateConversation` creates conversation + first message
-4. URL updates to `/dashboard/create-questions/[id]` via `router.push()`
+4. URL updates to `/dashboard/ai-chat/[id]` via `router.push()`
 5. `useConversationSession` detects URL change, updates conversationId
 6. `useMessages` loads messages for new conversationId
 7. All happens without page reload ✨
@@ -221,7 +221,7 @@ Failed operations automatically rollback optimistic updates:
 ### Loading Existing Conversation
 
 1. User clicks conversation in history
-2. `router.push('/dashboard/create-questions/[id]')` changes URL
+2. `router.push('/dashboard/ai-chat/[id]')` changes URL
 3. `useConversationSession` extracts conversationId from URL
 4. `useMessages` automatically loads messages via TanStack Query
 5. Cached data shows immediately, fresh data loads in background

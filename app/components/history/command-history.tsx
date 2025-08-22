@@ -337,7 +337,7 @@ export function CommandHistory({
   if (isOpen && !hasPrefetchedRef.current) {
     const recentConversations = conversationHistory.slice(0, 10);
     recentConversations.forEach((conversation) => {
-      router.prefetch(`/dashboard/create-questions/${conversation.id}`);
+      router.prefetch(`/dashboard/ai-chat/${conversation.id}`);
     });
     hasPrefetchedRef.current = true;
   }
@@ -505,7 +505,7 @@ export function CommandHistory({
               return;
             }
             if (!editingId && !deletingId) {
-              router.push(`/dashboard/create-questions/${conversation.id}`);
+              router.push(`/dashboard/ai-chat/${conversation.id}`);
               // Close the command history after navigating
               setIsOpen(false);
             }
