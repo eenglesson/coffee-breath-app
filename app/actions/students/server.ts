@@ -54,6 +54,7 @@ export async function createStudent(
   try {
     const school_id = await getUserSchoolId();
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const insertData: any = {
       full_name: input.full_name,
       school_year: input.school_year,
