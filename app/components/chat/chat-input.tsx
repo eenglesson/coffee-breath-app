@@ -9,7 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-import { ArrowUp, GlobeIcon, MoreHorizontal, Paperclip } from 'lucide-react';
+import { ArrowUp, GlobeIcon, Paperclip } from 'lucide-react';
 import type React from 'react';
 
 export interface ChatInputProps {
@@ -52,7 +52,7 @@ function ChatInput({
         <div className='flex flex-col'>
           <PromptInputTextarea
             placeholder={placeholder}
-            className='min-h-[44px] text-foreground pt-3 pl-4 text-base leading-[1.3] sm:text-base md:text-base dark:bg-transparent'
+            className='min-h-[44px] text-foreground pt-3 pl-4 text-base leading-[1.3] sm:text-base md:text-base dark:bg-transparent placeholder:text-muted-foreground/60'
             disabled={disabled}
           />
 
@@ -86,7 +86,7 @@ function ChatInput({
                 </Button>
               </PromptInputAction>
 
-              <PromptInputAction tooltip='More options'>
+              {/* <PromptInputAction tooltip='More options'>
                 <Button
                   variant='outline'
                   size='icon'
@@ -95,7 +95,7 @@ function ChatInput({
                 >
                   <MoreHorizontal size={18} />
                 </Button>
-              </PromptInputAction>
+              </PromptInputAction> */}
             </div>
             <div className='flex items-center gap-2'>
               <Button

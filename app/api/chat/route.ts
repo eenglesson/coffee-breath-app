@@ -87,6 +87,7 @@ export async function POST(req: Request) {
           };
         }
       },
+
       onFinish: async ({ messages: finalMessages }) => {
         // Save messages to database if we have a conversation ID
         if (conversationId && finalMessages.length > 0) {
@@ -99,6 +100,7 @@ export async function POST(req: Request) {
               const content = latestMessage.parts
                 .map((part) => (part.type === 'text' ? part.text : ''))
                 .join('');
+
               //add tools results and tool invocations
               await addMessageToConversation(
                 conversationId,
@@ -107,7 +109,6 @@ export async function POST(req: Request) {
                 latestMessage.metadata as Json
               );
             }
-            console.log('finalMessages', finalMessages);
           } catch (error) {
             console.error('Failed to save messages to database:', error);
             // Don't fail the response if saving fails

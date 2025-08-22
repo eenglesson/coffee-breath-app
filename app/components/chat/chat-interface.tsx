@@ -12,6 +12,7 @@ import { Database } from '@/database.types';
 import { DefaultChatTransport } from 'ai';
 import { convertDbMessagesToUIMessages } from '@/lib/utils/message-conversion';
 import { useConversationMessages } from '@/lib/hooks/chat/useMessages';
+import { useSearchMode } from '@/app/hooks/use-search-mode';
 
 type DbMessage = Database['public']['Tables']['ai_messages']['Row'];
 
@@ -44,7 +45,7 @@ export default function ChatInterface({
     propConversationId || null
   );
   const [input, setInput] = useState('');
-  const [searchMode, setSearchMode] = useState<boolean>(false);
+  const { searchMode, toggleSearchMode } = useSearchMode();
 
   // Use shared TanStack hook to load messages and leverage centralized cache keys and timings
   const currentConversationId = propConversationId || conversationId;
@@ -174,7 +175,7 @@ export default function ChatInterface({
   };
 
   const toggleSearch = () => {
-    setSearchMode((prev) => !prev);
+    toggleSearchMode();
   };
 
   // removed sessionStorage-based first-message handoff; we stream in-place
@@ -219,7 +220,7 @@ export default function ChatInterface({
               onValueChange={setInput}
               onSubmit={handleInputSubmit}
               isLoading={status === 'streaming'}
-              placeholder='Ask me to create questions for your students...'
+              placeholder='Ask me anything...'
               searchMode={searchMode}
               onToggleSearch={toggleSearch}
             />

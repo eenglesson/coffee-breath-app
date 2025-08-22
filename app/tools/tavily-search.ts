@@ -23,9 +23,10 @@ export const tavilySearchTool = {
           query,
           search_depth: 'basic', // 'basic' for speed; use 'advanced' for deeper crawls if needed
           include_answer: true, // Get Tavily's AI-generated summary
-          include_raw_content: false, // Avoid large payloads; set true if full page content needed
+          include_raw_content: true, // Avoid large payloads; set true if full page content needed
           max_results: 5, // Balance: enough results without overwhelming
           include_images: false, // Optional; set true if visuals are useful
+          include_favicon: true,
           // Add include_domains or exclude_domains arrays here if static filtering needed
         }),
       });
@@ -35,6 +36,7 @@ export const tavilySearchTool = {
       }
 
       const data = await response.json();
+      console.log('data', data);
       return {
         answer: data.answer || 'No summary available.',
         results: data.results || [], // Array of { title, url, content, score, ... }
