@@ -76,7 +76,7 @@ export async function updateConversationTitle(
 
   const updateData: ConversationUpdate = {
     title,
-    // Don't update updated_at when just changing title - only when messages are added
+    updated_at: new Date().toISOString(), // Update timestamp when title changes
   };
 
   const { data, error } = await supabase

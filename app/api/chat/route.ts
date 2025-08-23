@@ -87,21 +87,17 @@ export async function POST(req: Request) {
           };
         }
       },
-
       onFinish: async ({ messages: finalMessages }) => {
-        // Save messages to database if we have a conversation ID
+        // CRITICAL: Save AI messages to database for persistence
         if (conversationId && finalMessages.length > 0) {
           try {
-            // Save the AI response (always new)
             const latestMessage = finalMessages[finalMessages.length - 1];
             if (latestMessage.role === 'assistant') {
-              console.log('latestMessage', latestMessage);
-
               const content = latestMessage.parts
                 .map((part) => (part.type === 'text' ? part.text : ''))
                 .join('');
 
-              //add tools results and tool invocations
+              // Save to database with metadata
               await addMessageToConversation(
                 conversationId,
                 content,
@@ -110,8 +106,7 @@ export async function POST(req: Request) {
               );
             }
           } catch (error) {
-            console.error('Failed to save messages to database:', error);
-            // Don't fail the response if saving fails
+            console.error('Failed to save AI message to database:', error);
           }
         }
       },

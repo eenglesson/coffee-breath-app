@@ -6,6 +6,65 @@ import { toast } from 'sonner';
 import { addMessageToConversation as saAddMessageToConversation } from '@/app/actions/messages/messages';
 import { createClient } from '@/lib/supabase/client';
 
+// Clean cache sync utilities for AI SDK v5 integration
+export function useMessageCache() {
+  const queryClient = useQueryClient();
+
+  const addMessageToCache = (conversationId: string, message: AiMessage) => {
+    // Simply add the message to the messages cache (instant)
+    queryClient.setQueryData(
+      ['messages', conversationId],
+      (old: AiMessage[] = []) => [...old, message]
+    );
+  };
+
+  return { addMessageToCache };
+}
+
+interface ConversationUpdate {
+  preview?: Array<{ content: string; sender: string }>;
+  title?: string;
+  updated_at?: string;
+}
+
+export function useConversationCache() {
+  const queryClient = useQueryClient();
+
+  const updateConversation = (
+    conversationId: string,
+    updates: ConversationUpdate
+  ) => {
+    // Update the conversation with new data (instant)
+    queryClient.setQueriesData(
+      { queryKey: ['conversations'] },
+      (old: Array<{ id: string; [key: string]: unknown }> | undefined) => {
+        if (!old) return old;
+        return old.map((conv) =>
+          conv.id === conversationId
+            ? { ...conv, ...updates, updated_at: new Date().toISOString() }
+            : conv
+        );
+      }
+    );
+  };
+
+  return { updateConversation };
+}
+
+export function usePreviewCache() {
+  const queryClient = useQueryClient();
+
+  const updatePreview = (conversationId: string, message: AiMessage) => {
+    // Update the preview cache with latest message (instant)
+    queryClient.setQueryData(
+      ['conversation-messages-preview', conversationId],
+      (old: AiMessage[] = []) => [...old, message].slice(-5)
+    );
+  };
+
+  return { updatePreview };
+}
+
 // Hook to fetch messages for a specific conversation
 export function useConversationMessages(conversationId: string | null) {
   return useQuery({

@@ -222,7 +222,7 @@ function CommandItemRow({
 
       <div className='relative flex min-w-[140px] flex-shrink-0 items-center justify-end'>
         <div className='text-muted-foreground mr-2 text-xs transition-opacity duration-200 group-hover:opacity-0'>
-          {formatDate(conversation.created_at)}
+          {formatDate(conversation.updated_at || conversation.created_at)}
         </div>
 
         <div className='absolute right-0 flex translate-x-1 gap-1 opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100'>

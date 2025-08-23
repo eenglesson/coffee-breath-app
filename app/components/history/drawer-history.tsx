@@ -220,7 +220,9 @@ export function DrawerHistory({
                   {conversation.title || 'Untitled Conversation'}
                 </span>
                 <span className='mr-2 text-xs font-normal text-gray-500'>
-                  {formatDate(conversation?.created_at)}
+                  {formatDate(
+                    conversation?.updated_at || conversation?.created_at
+                  )}
                 </span>
               </Link>
               <div className='flex items-center'>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import { createConversation } from '@/app/actions/conversations/conversations';
@@ -11,8 +11,15 @@ import { Conversation } from './conversation';
 import { Database } from '@/database.types';
 import { DefaultChatTransport } from 'ai';
 import { convertDbMessagesToUIMessages } from '@/lib/utils/message-conversion';
-import { useConversationMessages } from '@/lib/hooks/chat/useMessages';
+import {
+  useConversationMessages,
+  useMessageCache,
+  useConversationCache,
+  usePreviewCache,
+} from '@/lib/hooks/chat/useMessages';
 import { useSearchMode } from '@/app/hooks/use-search-mode';
+import { convertUIMessageToDbMessage } from '@/lib/utils/message-conversion';
+import { AiMessage } from '@/lib/types/chat';
 
 type DbMessage = Database['public']['Tables']['ai_messages']['Row'];
 
@@ -52,6 +59,10 @@ export default function ChatInterface({
   const { data: dbMessages = [], isLoading: isLoadingMessages } =
     useConversationMessages(currentConversationId ?? null);
 
+  const { addMessageToCache } = useMessageCache();
+  const { updateConversation } = useConversationCache();
+  const { updatePreview } = usePreviewCache();
+
   const { messages, sendMessage, regenerate, status, setMessages } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/chat',
@@ -59,41 +70,62 @@ export default function ChatInterface({
     onError: (error) => {
       console.error('useChat error:', error);
     },
-    onFinish: (message) => {
-      console.log('useChat onFinish:', message);
+    onFinish: async ({ message }) => {
+      // Clean cache sync when AI finishes responding
+      if (message.role === 'assistant' && currentConversationId) {
+        try {
+          // Convert AI SDK message to DB format
+          const dbMessage = convertUIMessageToDbMessage(
+            message,
+            currentConversationId
+          );
+          const fullMessage: AiMessage = {
+            id: message.id,
+            conversation_id: currentConversationId,
+            content: dbMessage.content,
+            sender: 'assistant',
+            metadata: dbMessage.metadata || null,
+            created_at: new Date().toISOString(),
+          };
+
+          // Update caches instantly (queryClient.setQueryData is synchronous)
+          addMessageToCache(currentConversationId, fullMessage);
+
+          updateConversation(currentConversationId, {
+            preview: [
+              {
+                content:
+                  fullMessage.content.length > 100
+                    ? fullMessage.content.substring(0, 100) + '...'
+                    : fullMessage.content,
+                sender: fullMessage.sender,
+              },
+            ],
+          });
+
+          updatePreview(currentConversationId, fullMessage);
+        } catch (error) {
+          console.error('Failed to sync caches:', error);
+        }
+      }
     },
   });
 
-  // Minimal, safe hydration: when a conversation loads and chat is idle,
-  // seed useChat only if it currently has no messages.
+  // Simple conversation loading: seed AI SDK with history once
   useEffect(() => {
-    const id = currentConversationId;
-    if (!id) return;
-    if (status !== 'ready') return;
-    if (!dbMessages || dbMessages.length === 0) return;
-    if (messages.length > 0) return;
-
-    setMessages(convertDbMessagesToUIMessages(dbMessages));
-  }, [currentConversationId, dbMessages, messages.length, setMessages, status]);
-
-  // Invalidate caches when streaming completes (AI SDK v5: no per-send onFinish)
-  const prevStatusRef = useRef(status);
-  useEffect(() => {
-    const prev = prevStatusRef.current;
-    if ((prev === 'streaming' || prev === 'submitted') && status === 'ready') {
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
-      const idForInvalidation = propConversationId || conversationId;
-      if (idForInvalidation) {
-        queryClient.invalidateQueries({
-          queryKey: ['messages', idForInvalidation],
-        });
-        queryClient.invalidateQueries({
-          queryKey: ['conversation-messages-preview', idForInvalidation],
-        });
-      }
+    if (
+      currentConversationId &&
+      dbMessages.length > 0 &&
+      messages.length === 0 &&
+      status === 'ready'
+    ) {
+      // Let AI SDK handle the conversation history
+      setMessages(convertDbMessagesToUIMessages(dbMessages));
     }
-    prevStatusRef.current = status;
-  }, [status, propConversationId, conversationId, queryClient]);
+  }, [currentConversationId, dbMessages, messages.length, status, setMessages]);
+
+  // Cache invalidation is now handled in useChat onFinish callback
+  // This reduces race conditions and over-invalidating
 
   // Sync internal conversationId state with prop changes
   useEffect(() => {

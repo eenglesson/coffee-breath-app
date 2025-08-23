@@ -12,7 +12,7 @@ import EditStudentDialog from './EditStudentDialog';
 import { Tables } from '@/database.types';
 import { formatName } from '@/app/utils/formatName';
 
-import StudentBadge from '@/components/student-badge';
+// import StudentBadge from '@/components/student-badge';
 import { formatDate } from '@/app/components/history/utils';
 
 interface StudentListProps {
@@ -71,7 +71,7 @@ export default function StudentList({
               <Edit />
             </Button>
           </CardHeader>
-          <CardContent className='flex items-center gap-2 overflow-x-auto scrollbar-hide flex-nowrap min-w-0 py-2'>
+          {/* <CardContent className='flex items-center gap-2 overflow-x-auto scrollbar-hide flex-nowrap min-w-0 py-2'>
             <StudentBadge type='math-whiz' />
             <StudentBadge type='imaginative-mind' />
             <StudentBadge type='group-energizer' />
@@ -82,7 +82,7 @@ export default function StudentList({
             <StudentBadge type='image-savvy' />
             <StudentBadge type='story-teller' />
             <StudentBadge type='tech-explorer' />
-          </CardContent>
+          </CardContent> */}
           <CardContent className='flex flex-col mt-2 gap-4'>
             <aside className='flex-1 flex flex-col'>
               <div className='flex items-center gap-2 mb-1'>
