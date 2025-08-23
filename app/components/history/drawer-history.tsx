@@ -93,11 +93,20 @@ export function DrawerHistory({
   // Memoize filtered conversations to avoid recalculating on every render
   const filteredConversations = useMemo(() => {
     const query = searchQuery.toLowerCase();
-    return query
+    let filtered = query
       ? conversationHistory.filter((conversation) =>
           (conversation.title || '').toLowerCase().includes(query)
         )
       : conversationHistory;
+
+    // Always sort by updated_at descending (latest first)
+    filtered = [...filtered].sort((a, b) => {
+      const dateA = new Date(a.updated_at || a.created_at || '').getTime();
+      const dateB = new Date(b.updated_at || b.created_at || '').getTime();
+      return dateB - dateA;
+    });
+
+    return filtered;
   }, [conversationHistory, searchQuery]);
 
   // Group conversations by time periods - memoized to avoid recalculation

@@ -1,8 +1,8 @@
-import { supabaseServerService } from '@/lib/supabaseServerService';
+import { getStudents } from '@/app/actions/students/server';
 import ContainerStudents from './ContainerStudents';
 
 export default async function page() {
-  const students = await supabaseServerService.getStudents();
+  const students = await getStudents();
 
   return (
     <div>

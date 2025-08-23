@@ -441,17 +441,45 @@ export function CommandHistory({
 
   const filteredConversations = useMemo(() => {
     const query = searchQuery.toLowerCase();
-    return query
+    let filtered = query
       ? conversationHistory.filter((conversation) =>
           (conversation.title || '').toLowerCase().includes(query)
         )
       : conversationHistory;
+
+    // Always sort by updated_at descending (latest first)
+    filtered = [...filtered].sort((a, b) => {
+      const dateA = new Date(a.updated_at || a.created_at || '').getTime();
+      const dateB = new Date(b.updated_at || b.created_at || '').getTime();
+      return dateB - dateA;
+    });
+
+    console.log(
+      'Filtered conversations:',
+      filtered.length,
+      'first updated_at:',
+      filtered[0]?.updated_at
+    );
+    return filtered;
   }, [conversationHistory, searchQuery]);
 
-  const groupedConversations = useMemo(
-    () => groupConversationsByDate(conversationHistory, searchQuery),
-    [conversationHistory, searchQuery]
-  );
+  const groupedConversations = useMemo(() => {
+    console.log(
+      'CommandHistory: conversationHistory changed',
+      conversationHistory?.length,
+      'conversations'
+    );
+    console.log(
+      'First conversation updated_at:',
+      conversationHistory?.[0]?.updated_at
+    );
+    const result = groupConversationsByDate(conversationHistory, searchQuery);
+    console.log(
+      'Grouped result:',
+      result?.map((g) => `${g.name}: ${g.conversations.length}`)
+    );
+    return result;
+  }, [conversationHistory, searchQuery]);
 
   const activePreviewConversationId =
     hoveredConversationId ||

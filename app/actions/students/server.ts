@@ -5,7 +5,13 @@ import { createClient } from '@/lib/supabase/server';
 // Get the authenticated user's school_id from profiles table
 export async function getStudents() {
   const supabase = await createClient();
-  const { data, error } = await supabase.from('students').select('*').limit(30);
+  const schoolId = await getUserSchoolId();
+
+  const { data, error } = await supabase
+    .from('students')
+    .select('*')
+    .eq('school_id', schoolId)
+    .limit(30);
 
   if (error) {
     throw new Error(`Error fetching students: ${error.message}`);
@@ -16,7 +22,12 @@ export async function getStudents() {
 
 export async function getAllStudents() {
   const supabase = await createClient();
-  const { data, error } = await supabase.from('students').select('*');
+  const schoolId = await getUserSchoolId();
+
+  const { data, error } = await supabase
+    .from('students')
+    .select('*')
+    .eq('school_id', schoolId);
 
   if (error) {
     throw new Error(`Error fetching students: ${error.message}`);
@@ -44,6 +55,24 @@ export async function getUserSchoolId() {
   }
 
   return profileData.school_id;
+}
+
+export async function searchStudents(query: string) {
+  const supabase = await createClient();
+  const schoolId = await getUserSchoolId();
+
+  const { data, error } = await supabase
+    .from('students')
+    .select('*')
+    .eq('school_id', schoolId)
+    .or(`full_name.ilike.%${query}%,school_year.ilike.%${query}%`)
+    .limit(5);
+
+  if (error) {
+    throw new Error(`Error fetching based on query: ${error.message}`);
+  }
+
+  return data;
 }
 
 // Create a new student

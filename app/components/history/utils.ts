@@ -55,29 +55,49 @@ export function groupConversationsByDate(
 
   const result: TimeGroup[] = [];
 
+  // Helper function to sort conversations by updated_at descending
+  const sortByUpdatedAt = (convs: ConversationWithPreview[]) =>
+    convs.sort((a, b) => {
+      const dateA = new Date(a.updated_at || a.created_at || '').getTime();
+      const dateB = new Date(b.updated_at || b.created_at || '').getTime();
+      return dateB - dateA;
+    });
+
   if (todayConversations.length > 0) {
-    result.push({ name: 'Today', conversations: todayConversations });
+    result.push({
+      name: 'Today',
+      conversations: sortByUpdatedAt(todayConversations),
+    });
   }
 
   if (last7DaysConversations.length > 0) {
-    result.push({ name: 'Last 7 days', conversations: last7DaysConversations });
+    result.push({
+      name: 'Last 7 days',
+      conversations: sortByUpdatedAt(last7DaysConversations),
+    });
   }
 
   if (last30DaysConversations.length > 0) {
     result.push({
       name: 'Last 30 days',
-      conversations: last30DaysConversations,
+      conversations: sortByUpdatedAt(last30DaysConversations),
     });
   }
 
   if (thisYearConversations.length > 0) {
-    result.push({ name: 'This year', conversations: thisYearConversations });
+    result.push({
+      name: 'This year',
+      conversations: sortByUpdatedAt(thisYearConversations),
+    });
   }
 
   Object.entries(olderConversations)
     .sort(([yearA], [yearB]) => Number(yearB) - Number(yearA))
     .forEach(([year, yearConversations]) => {
-      result.push({ name: year, conversations: yearConversations });
+      result.push({
+        name: year,
+        conversations: sortByUpdatedAt(yearConversations),
+      });
     });
 
   return result;
