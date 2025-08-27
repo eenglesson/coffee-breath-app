@@ -30,9 +30,7 @@ export default async function DashboardLayout({
             <AppSidebar profile={profile} />
             <SidebarInset>
               <NavbarHeader />
-              <main className='flex flex-1 flex-col gap-2 p-2 sm:p-4 pt-0 '>
-                {children}
-              </main>
+              <main>{children}</main>
             </SidebarInset>
           </SidebarProvider>
         </ConversationSessionProvider>

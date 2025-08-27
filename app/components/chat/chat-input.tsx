@@ -41,7 +41,7 @@ function ChatInput({
   };
 
   return (
-    <div className={`w-full ${className || ''} `}>
+    <div className={`w-full  ${className || ''} `}>
       <PromptInput
         isLoading={isLoading}
         value={value}

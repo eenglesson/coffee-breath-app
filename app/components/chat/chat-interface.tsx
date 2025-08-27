@@ -20,7 +20,6 @@ import {
 import { useSearchMode } from '@/app/hooks/use-search-mode';
 import { convertUIMessageToDbMessage } from '@/lib/utils/message-conversion';
 import { AiMessage } from '@/lib/types/chat';
-
 type DbMessage = Database['public']['Tables']['ai_messages']['Row'];
 
 interface ChatInterfaceProps {
@@ -64,6 +63,7 @@ export default function ChatInterface({
   const { updatePreview } = usePreviewCache();
 
   const { messages, sendMessage, regenerate, status, setMessages } = useChat({
+    experimental_throttle: 50,
     transport: new DefaultChatTransport({
       api: '/api/chat',
     }),
@@ -217,11 +217,11 @@ export default function ChatInterface({
     !isLoadingMessages && !propConversationId && messages.length === 0;
 
   return (
-    <section className='w-full max-w-3xl mx-auto h-full flex flex-col'>
+    <section className='w-full h-[calc(100vh-64px)] flex items-center justify-center'>
       {showStarter ? (
-        <div className='flex flex-col h-full justify-center items-center'>
+        <div className='flex flex-col justify-center items-center max-w-3xl w-full'>
           <div>
-            <h1 className='mb-6 text-3xl text-center font-medium tracking-tight'>
+            <h1 className='mb-2 text-3xl text-center font-medium tracking-tight'>
               What&apos;s on your mind?
             </h1>
           </div>
@@ -236,8 +236,10 @@ export default function ChatInterface({
           />
         </div>
       ) : (
-        <div className='flex flex-col h-full'>
-          <div className='flex-1 overflow-y-auto'>
+        <div className='w-full relative'>
+          <div className='relative flex flex-col h-[calc(100vh-64px)] w-full'>
+            {' '}
+            {/* 100vh - 64px header height */}
             <Conversation
               messages={messages}
               status={status}
@@ -245,9 +247,8 @@ export default function ChatInterface({
               onReload={handleReload}
             />
           </div>
-          <div className='sticky mt-auto bottom-4 max-w-3xl'>
+          <div className='absolute bottom-2 left-0 right-0 w-full max-w-3xl mx-auto px-2'>
             <ChatInput
-              className=''
               value={input}
               onValueChange={setInput}
               onSubmit={handleInputSubmit}

@@ -153,7 +153,11 @@ export function MessageAssistant({
               side='bottom'
               delayDuration={0}
             >
-              <Button variant='ghost' size='icon'>
+              <Button
+                variant='ghost'
+                size='icon'
+                className='rounded-full size-7.5'
+              >
                 <ClipboardPen className='size-4' />
               </Button>
             </MessageAction>

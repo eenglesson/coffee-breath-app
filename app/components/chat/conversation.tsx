@@ -8,6 +8,7 @@ import {
 import { UIMessage as MessageType } from '@ai-sdk/react';
 import { useRef } from 'react';
 import { Message } from './message';
+import { ScrollButton } from '@/components/prompt-kit/scroll-button';
 
 type ConversationProps = {
   messages: MessageType[];
@@ -30,13 +31,14 @@ export function Conversation({
     return <div className='h-full w-full'></div>;
 
   return (
-    <div className='relative flex h-full w-full flex-col overflow-x-hidden'>
+    <div className='relative flex w-full flex-col overflow-x-hidden '>
       <ChatContainerRoot className='relative flex-1 h-full overflow-auto'>
         <ChatContainerContent
-          className='flex w-full flex-col justify-between pt-12 pb-4'
+          className='flex w-full flex-col justify-between pt-12 pb-24 max-w-3xl mx-auto px-2'
           style={{
             scrollbarGutter: 'stable both-edges',
             scrollbarWidth: 'none',
+            scrollbarColor: 'transparent transparent',
           }}
         >
           {messages?.map((message, index) => {
@@ -74,10 +76,11 @@ export function Conversation({
               </Message>
             );
           })}
+
+          <div className='sticky bottom-36 flex justify-end pr-4 z-50'>
+            <ScrollButton />
+          </div>
         </ChatContainerContent>
-        {/* <div className='absolute bottom-4 right-4 z-50'>
-          <ScrollButton />
-        </div> */}
       </ChatContainerRoot>
     </div>
   );
