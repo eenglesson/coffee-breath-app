@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import * as studentServer from './server';
 import { Tables } from '@/database.types';
 
@@ -24,6 +24,15 @@ function debounce<T extends (...args: any[]) => any>(
   };
 
   return debounced;
+}
+
+// Query hook for fetching all students
+export function useStudentsQuery() {
+  return useQuery({
+    queryKey: ['students'],
+    queryFn: studentServer.getStudents,
+    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+  });
 }
 
 export function useCreateStudent() {

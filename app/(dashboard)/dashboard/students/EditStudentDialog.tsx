@@ -22,8 +22,11 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { updateStudent, deleteStudent } from '@/app/actions/students/server'; // Import reusable functions
 import { useState } from 'react';
+import {
+  useUpdateStudent,
+  useDeleteStudent,
+} from '@/app/actions/students/queries';
 import { Trash } from 'lucide-react';
 import {
   Select,
@@ -68,6 +71,10 @@ export default function EditStudentDialog({
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const schoolYears = useSchoolYears();
 
+  // TanStack Query mutations
+  const updateStudentMutation = useUpdateStudent();
+  const deleteStudentMutation = useDeleteStudent();
+
   const schoolYearOptions = schoolYears.map((year) => ({
     value: year,
     label: year.toUpperCase(),
@@ -89,13 +96,16 @@ export default function EditStudentDialog({
     data
   ) => {
     try {
-      await updateStudent(student.id, {
-        full_name: data.fullName.toLowerCase(),
-        school_year: data.yearInSchool.toLowerCase(),
-        interests: data.interests,
-        learning_difficulties: data.learningDifficulties,
-        student_badge: data.badges || null,
-      } as Tables<'students'>);
+      await updateStudentMutation.mutateAsync({
+        studentId: student.id,
+        input: {
+          full_name: data.fullName.toLowerCase(),
+          school_year: data.yearInSchool.toLowerCase(),
+          interests: data.interests,
+          learning_difficulties: data.learningDifficulties,
+          student_badge: data.badges || null,
+        } as Tables<'students'>,
+      });
       form.reset();
       onClose();
     } catch (error) {
@@ -106,7 +116,7 @@ export default function EditStudentDialog({
   // Handle delete confirmation
   const handleDeleteConfirm = async () => {
     try {
-      await deleteStudent(student.id);
+      await deleteStudentMutation.mutateAsync(student.id);
       setIsConfirmDialogOpen(false); // Close confirmation dialog
       onClose(); // Close the edit dialog
     } catch (error) {

@@ -29,10 +29,10 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 
-import { createStudent } from '@/app/actions/students/server';
 import { Tables } from '@/database.types';
 import { useSchoolYears } from '@/lib/context/SchoolYearContext';
 import BadgeSelector from '@/components/badge-selector';
+import { useCreateStudent } from '@/app/actions/students/queries';
 
 // Define the Zod schema for the form
 const studentSchema = z.object({
@@ -50,6 +50,9 @@ interface AddStudentFormProps {
 export default function AddStudentDialog({ onClose }: AddStudentFormProps) {
   // Initialize the form with zodResolver and default values
   const schoolYears = useSchoolYears();
+
+  // TanStack Query mutation
+  const createStudentMutation = useCreateStudent();
 
   const schoolYearOptions = schoolYears.map((year) => ({
     value: year,
@@ -72,7 +75,7 @@ export default function AddStudentDialog({ onClose }: AddStudentFormProps) {
     data
   ) => {
     try {
-      await createStudent({
+      await createStudentMutation.mutateAsync({
         full_name: data.fullName.toLowerCase(),
         school_year: data.yearInSchool.toLowerCase(),
         interests: data.interests,

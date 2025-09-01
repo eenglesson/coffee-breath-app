@@ -90,7 +90,7 @@ export async function createStudent(input: Tables<'students'>) {
       school_id,
     };
 
-    const { error } = await supabase.from('students').insert([insertData]);
+    const { error } = await supabase.from('students').insert(insertData);
 
     if (error) {
       throw new Error(error.message);

@@ -1,10 +1,11 @@
 'use client';
-import { useState, useRef, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import SearchSection from './SearchSection';
 import StudentList from './StudentList';
 import { Tables } from '@/database.types';
 import { createClient } from '@/lib/supabase/client';
-import { RealtimeChannel } from '@supabase/supabase-js';
+
+import { useStudentsQuery } from '@/app/actions/students/queries';
 
 interface ContainerStudentsProps {
   initialStudents: Tables<'students'>[];
@@ -29,16 +30,11 @@ export default function ContainerStudents({
   const [searchResults, setSearchResults] =
     useState<Tables<'students'>[]>(initialStudents);
   const [isSearching, setIsSearching] = useState(false);
-  const [students, setStudents] =
-    useState<Tables<'students'>[]>(initialStudents);
+
+  // Use TanStack Query for students data
+  const { data: students = initialStudents, isLoading } = useStudentsQuery();
 
   const supabase = useMemo(() => createClient(), []);
-  const studentsChannel = useRef<RealtimeChannel | null>(null);
-  const realtimeUpdateBuffer = useRef<Map<string, Tables<'students'>>>(
-    new Map()
-  );
-  const lastRealtimeUpdate = useRef<number>(0);
-  const REALTIME_THROTTLE_MS = 500; // Throttle real-time updates
 
   // Debounced search function - optimized to avoid unnecessary queries
   const performSearch = useMemo(
@@ -73,86 +69,18 @@ export default function ContainerStudents({
     [supabase, students]
   );
 
-  // Throttled real-time update handler
-  const handleRealtimeUpdate = useCallback(() => {
-    const now = Date.now();
-    if (now - lastRealtimeUpdate.current < REALTIME_THROTTLE_MS) {
-      return;
-    }
-    lastRealtimeUpdate.current = now;
-
-    setStudents((prev) => {
-      const updatedStudents = [...prev];
-
-      // Apply buffered updates
-      realtimeUpdateBuffer.current.forEach((student, id) => {
-        const existingIndex = updatedStudents.findIndex((s) => s.id === id);
-        if (existingIndex >= 0) {
-          updatedStudents[existingIndex] = student;
-        } else {
-          updatedStudents.push(student);
-        }
-      });
-
-      // Clear buffer after applying
-      realtimeUpdateBuffer.current.clear();
-
-      return updatedStudents;
-    });
-
-    // Only trigger search if there's an active search term
-    if (searchTerm.trim()) {
+  // Update search results when students data changes
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setSearchResults(students);
+    } else {
+      // Re-run search with current term when students data updates
       performSearch(searchTerm);
     }
-  }, [searchTerm, performSearch]);
+  }, [students, searchTerm, performSearch]);
 
-  // Setup real-time subscription with proper lifecycle management
-  useEffect(() => {
-    if (studentsChannel.current) return;
-
-    studentsChannel.current = supabase
-      .channel('students-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'students',
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            const newStudent = payload.new as Tables<'students'>;
-            realtimeUpdateBuffer.current.set(newStudent.id, newStudent);
-            handleRealtimeUpdate();
-          } else if (payload.eventType === 'UPDATE') {
-            const updatedStudent = payload.new as Tables<'students'>;
-            realtimeUpdateBuffer.current.set(updatedStudent.id, updatedStudent);
-            handleRealtimeUpdate();
-          } else if (payload.eventType === 'DELETE') {
-            const deletedStudent = payload.old as { id: string };
-            realtimeUpdateBuffer.current.delete(deletedStudent.id);
-
-            setStudents((prev) =>
-              prev.filter((student) => student.id !== deletedStudent.id)
-            );
-
-            if (searchTerm.trim()) {
-              setSearchResults((prev) =>
-                prev.filter((student) => student.id !== deletedStudent.id)
-              );
-            }
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      if (studentsChannel.current) {
-        studentsChannel.current.unsubscribe();
-        studentsChannel.current = null;
-      }
-    };
-  }, [supabase, handleRealtimeUpdate, searchTerm]);
+  // Note: Real-time updates are now handled by TanStack Query cache invalidation
+  // The mutations in queries.ts will invalidate the cache, triggering a refetch
 
   // Handler for search input change
   const handleSearchTermChange = useCallback(
@@ -177,7 +105,7 @@ export default function ContainerStudents({
       <StudentList
         students={students}
         searchResults={searchResults}
-        isSearching={isSearching}
+        isSearching={isSearching || isLoading}
       />
     </div>
   );
