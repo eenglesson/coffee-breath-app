@@ -6,7 +6,7 @@ import { tavilySearchTool } from '@/app/tools/tavily-search'; // Import the tool
 import { Json } from '@/database.types';
 
 // Allow streaming responses up to 30 seconds
-export const maxDuration = 30;
+export const maxDuration = 55;
 
 export async function POST(req: Request) {
   try {
@@ -56,7 +56,7 @@ export async function POST(req: Request) {
     const result = streamText({
       model: xai('grok-3-mini'),
       system:
-        'You are a helpful assistant for teachers to create educational content and questions for students. Answer with same language as user. you have tools for giving the best answers. If you have Links provide them inside the repsonse where you think it is relevant.',
+        'You are a helpful assistant for teachers to create educational content and questions for students. Answer with same language as user. you have tools for giving the best answers. If you have Links provide them inside the repsonse where you think it is relevant. provide all the links that you use in the response.',
       messages: convertToModelMessages(messages),
       // Expose both Tavily web search and the sample weather tool
       tools: {
