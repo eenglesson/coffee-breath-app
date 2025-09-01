@@ -5,7 +5,7 @@ export default async function page() {
   const students = await getStudents();
 
   return (
-    <div>
+    <div className='p-4'>
       <ContainerStudents initialStudents={students} />
     </div>
   );

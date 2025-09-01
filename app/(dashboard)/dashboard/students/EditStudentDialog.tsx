@@ -35,6 +35,7 @@ import {
 import { formatName } from '@/app/utils/formatName';
 import { Tables } from '@/database.types';
 import { useSchoolYears } from '@/lib/context/SchoolYearContext';
+import BadgeSelector from '@/components/badge-selector';
 
 // Define the Zod schema for the form
 const studentSchema = z.object({
@@ -42,12 +43,18 @@ const studentSchema = z.object({
   yearInSchool: z.string().min(1, 'Year in school is required'),
   interests: z.string().min(1, 'Interests are required'),
   learningDifficulties: z.string().nullable(),
+  badges: z.array(z.string()).optional(),
 });
 
 interface EditStudentDialogProps {
   student: Pick<
     Tables<'students'>,
-    'id' | 'full_name' | 'school_year' | 'interests' | 'learning_difficulties'
+    | 'id'
+    | 'full_name'
+    | 'school_year'
+    | 'interests'
+    | 'learning_difficulties'
+    | 'student_badge'
   >;
 
   onClose: () => void;
@@ -73,6 +80,7 @@ export default function EditStudentDialog({
       yearInSchool: student.school_year ?? '',
       interests: student.interests ?? '',
       learningDifficulties: student.learning_difficulties ?? null,
+      badges: student.student_badge ?? [],
     },
   });
 
@@ -86,6 +94,7 @@ export default function EditStudentDialog({
         school_year: data.yearInSchool.toLowerCase(),
         interests: data.interests,
         learning_difficulties: data.learningDifficulties,
+        student_badge: data.badges || null,
       } as Tables<'students'>);
       form.reset();
       onClose();
@@ -200,10 +209,26 @@ export default function EditStudentDialog({
                   </FormItem>
                 )}
               />
+              <FormField
+                control={form.control}
+                name='badges'
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <BadgeSelector
+                        selectedBadges={field.value || []}
+                        onBadgeChange={field.onChange}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <DialogFooter className='flex flex-col-reverse sm:justify-between w-full'>
                 <Button
                   type='button'
-                  variant='destructive'
+                  variant='ghost'
+                  className='text-destructive hover:text-destructive'
                   onClick={() => setIsConfirmDialogOpen(true)}
                 >
                   <Trash className='h-4 w-4' />

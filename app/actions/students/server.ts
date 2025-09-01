@@ -76,26 +76,19 @@ export async function searchStudents(query: string) {
 }
 
 // Create a new student
-export async function createStudent(
-  input: Tables<'students'> & { badges?: string | null }
-) {
+export async function createStudent(input: Tables<'students'>) {
   const supabase = await createClient();
   try {
     const school_id = await getUserSchoolId();
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const insertData: any = {
+    const insertData = {
       full_name: input.full_name,
       school_year: input.school_year,
       interests: input.interests,
       learning_difficulties: input.learning_difficulties,
+      student_badge: input.student_badge,
       school_id,
     };
-
-    // Handle badges if provided (store as JSON string since database doesn't have badges column yet)
-    if (input.badges !== undefined) {
-      insertData.badges = input.badges;
-    }
 
     const { error } = await supabase.from('students').insert([insertData]);
 
@@ -104,7 +97,6 @@ export async function createStudent(
     }
   } catch (error) {
     console.error('Error creating student:', error);
-
     throw error; // Rethrow to allow caller to handle if needed
   }
 }
@@ -123,6 +115,7 @@ export async function updateStudent(
         school_year: input.school_year,
         interests: input.interests,
         learning_difficulties: input.learning_difficulties,
+        student_badge: input.student_badge,
       })
       .eq('id', studentId);
 

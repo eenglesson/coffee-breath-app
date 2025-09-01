@@ -11,10 +11,8 @@ import { Button } from '@/components/ui/button';
 import EditStudentDialog from './EditStudentDialog';
 import { Tables } from '@/database.types';
 import { formatName } from '@/app/utils/formatName';
-
-// import StudentBadge from '@/components/student-badge';
 import { formatDate } from '@/app/components/history/utils';
-import StudentBadge from '@/components/student-badge';
+import StudentBadge, { StudentBadgeTypeIds } from '@/components/student-badge';
 
 interface StudentListProps {
   students: Tables<'students'>[];
@@ -73,10 +71,18 @@ export default function StudentList({
             </Button>
           </CardHeader>
           <CardContent className='flex items-center gap-2 overflow-x-auto scrollbar-hide flex-nowrap min-w-0 py-2'>
-            <StudentBadge type='math-whiz' />
-            <StudentBadge type='imaginative-mind' />
-            <StudentBadge type='group-energizer' />
-            <StudentBadge type='initiative-taker' />
+            {student.student_badge && student.student_badge.length > 0 ? (
+              student.student_badge.map((badgeId) => (
+                <StudentBadge
+                  key={badgeId}
+                  type={badgeId as StudentBadgeTypeIds}
+                />
+              ))
+            ) : (
+              <span className='text-sm text-muted-foreground italic'>
+                No selected badges
+              </span>
+            )}
           </CardContent>
           <CardContent className='flex flex-col mt-2 gap-4'>
             <aside className='flex-1 flex flex-col'>

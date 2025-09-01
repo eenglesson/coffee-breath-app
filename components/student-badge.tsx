@@ -158,7 +158,9 @@ export default function StudentBadge({ type, className }: StudentBadgeProps) {
             )}
           >
             <IconComponent />
-            <span className='text-sm font-medium'>{badgeType.name}</span>
+            <span className={cn('text-sm font-medium', className)}>
+              {badgeType.name}
+            </span>
           </Badge>
         </TooltipTrigger>
         <TooltipContent
@@ -175,7 +177,7 @@ export default function StudentBadge({ type, className }: StudentBadgeProps) {
             })
           )}
         >
-          <p className='text-xs font-semibold'>{badgeType.description}</p>
+          <p className='text-xs font-medium'>{badgeType.description}</p>
         </TooltipContent>
       </Tooltip>
     );

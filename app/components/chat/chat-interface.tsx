@@ -226,6 +226,7 @@ export default function ChatInterface({
             </h1>
           </div>
           <ChatInput
+            className='px-2'
             value={input}
             onValueChange={setInput}
             onSubmit={handleInputSubmit}

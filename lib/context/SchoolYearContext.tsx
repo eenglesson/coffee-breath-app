@@ -1,26 +1,46 @@
 'use client';
 
 import { createContext, useContext } from 'react';
+import { Tables } from '@/database.types';
 
-// Create the context with a default value of an empty array
-export const SchoolYearsContext = createContext<string[]>([]);
+// Type for school information
+export type SchoolInfo = Tables<'schools'>;
 
-// Provider component to supply school years data to the component tree
-export function SchoolYearsProvider({
-  schoolYears,
+// Create the context with a default value
+export const SchoolContext = createContext<SchoolInfo | null>(null);
+
+// Provider component to supply complete school data to the component tree
+export function SchoolProvider({
+  school,
   children,
 }: {
-  schoolYears: string[];
+  school: SchoolInfo | null;
   children: React.ReactNode;
 }) {
   return (
-    <SchoolYearsContext.Provider value={schoolYears}>
-      {children}
-    </SchoolYearsContext.Provider>
+    <SchoolContext.Provider value={school}>{children}</SchoolContext.Provider>
   );
 }
 
-// Custom hook to access the school years data
+// Custom hook to access the complete school data
+export function useSchool() {
+  return useContext(SchoolContext);
+}
+
+// Custom hook to access just the school years (for backward compatibility)
 export function useSchoolYears() {
-  return useContext(SchoolYearsContext);
+  const school = useContext(SchoolContext);
+  return school?.school_year || [];
+}
+
+// Custom hook to access school name
+export function useSchoolName() {
+  const school = useContext(SchoolContext);
+  return school?.name || '';
+}
+
+// Custom hook to access school ID
+export function useSchoolId() {
+  const school = useContext(SchoolContext);
+  return school?.id || '';
 }

@@ -32,14 +32,15 @@ import {
 import { createStudent } from '@/app/actions/students/server';
 import { Tables } from '@/database.types';
 import { useSchoolYears } from '@/lib/context/SchoolYearContext';
+import BadgeSelector from '@/components/badge-selector';
 
 // Define the Zod schema for the form
 const studentSchema = z.object({
   fullName: z.string().min(1, 'Full name is required'),
   yearInSchool: z.string().min(1, 'Year in school is required'),
-
   interests: z.string().min(1, 'Interests are required'),
   learningDifficulties: z.string().optional(),
+  badges: z.array(z.string()).optional(),
 });
 
 interface AddStudentFormProps {
@@ -62,6 +63,7 @@ export default function AddStudentDialog({ onClose }: AddStudentFormProps) {
       yearInSchool: '',
       interests: '',
       learningDifficulties: '',
+      badges: [],
     },
   });
 
@@ -75,6 +77,7 @@ export default function AddStudentDialog({ onClose }: AddStudentFormProps) {
         school_year: data.yearInSchool.toLowerCase(),
         interests: data.interests,
         learning_difficulties: data.learningDifficulties,
+        student_badge: data.badges || null,
       } as Tables<'students'>);
       form.reset();
       onClose();
@@ -167,6 +170,21 @@ export default function AddStudentDialog({ onClose }: AddStudentFormProps) {
                       {...field}
                       value={field.value || ''}
                       className='h-32 text-sm placeholder:text-sm '
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name='badges'
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <BadgeSelector
+                      selectedBadges={field.value || []}
+                      onBadgeChange={field.onChange}
                     />
                   </FormControl>
                   <FormMessage />
