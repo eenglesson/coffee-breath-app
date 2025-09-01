@@ -24,7 +24,7 @@ export default async function DashboardLayout({
 
   return (
     <TanstackQueryProvider>
-      <ConversationsProvider teacherId={profile.id}>
+      <ConversationsProvider teacherId={profile}>
         <ConversationSessionProvider>
           <SidebarProvider>
             <AppSidebar profile={profile} />

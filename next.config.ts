@@ -4,12 +4,14 @@ const nextConfig: NextConfig = {
   // Enable static optimization where possible
   experimental: {
     optimizePackageImports: ['lucide-react', '@radix-ui/react-icons'],
-    turbo: {
-      rules: {
-        '*.svg': {
-          loaders: ['@svgr/webpack'],
-          as: '*.js',
-        },
+  },
+
+  // Turbopack configuration (moved from experimental.turbo)
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
       },
     },
   },
