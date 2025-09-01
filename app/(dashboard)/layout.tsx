@@ -29,7 +29,7 @@ export default async function DashboardLayout({
           <SidebarProvider>
             <AppSidebar profile={profile} />
             <SidebarInset>
-              <NavbarHeader />
+              <NavbarHeader /> 
               <main>{children}</main>
             </SidebarInset>
           </SidebarProvider>
