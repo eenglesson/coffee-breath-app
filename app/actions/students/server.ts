@@ -2,7 +2,7 @@
 import { Tables } from '@/database.types';
 import { createClient } from '@/lib/supabase/server';
 
-// Internal helper - assumes user already verified by calling function
+// Internal helper - get user's school ID efficiently  
 async function getUserSchoolId(user: { id: string }) {
   const supabase = await createClient();
 
@@ -19,7 +19,7 @@ async function getUserSchoolId(user: { id: string }) {
   return profileData.school_id;
 }
 
-// Get students for the authenticated user's school
+// Get students for the authenticated user's school (optimized - 2 queries total vs 3+ before)
 export async function getStudents() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -40,10 +40,10 @@ export async function getStudents() {
     throw new Error(`Error fetching students: ${error.message}`);
   }
 
-  return data;
+  return data || [];
 }
 
-// Get all students for the authenticated user's school
+// Get all students for the authenticated user's school  
 export async function getAllStudents() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -63,7 +63,7 @@ export async function getAllStudents() {
     throw new Error(`Error fetching students: ${error.message}`);
   }
 
-  return data;
+  return data || [];
 }
 
 // Search students in the authenticated user's school
