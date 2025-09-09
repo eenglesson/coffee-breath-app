@@ -2,10 +2,33 @@
 import { Tables } from '@/database.types';
 import { createClient } from '@/lib/supabase/server';
 
-// Get the authenticated user's school_id from profiles table
+// Internal helper - assumes user already verified by calling function
+async function getUserSchoolId(user: { id: string }) {
+  const supabase = await createClient();
+
+  const { data: profileData, error: profileError } = await supabase
+    .from('profiles')
+    .select('school_id')
+    .eq('id', user.id)
+    .single();
+
+  if (profileError || !profileData?.school_id) {
+    throw new Error('Failed to fetch teacher profile or school ID');
+  }
+
+  return profileData.school_id;
+}
+
+// Get students for the authenticated user's school
 export async function getStudents() {
   const supabase = await createClient();
-  const schoolId = await getUserSchoolId();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('Unauthorized: User not authenticated');
+  }
+
+  const schoolId = await getUserSchoolId(user);
 
   const { data, error } = await supabase
     .from('students')
@@ -20,9 +43,16 @@ export async function getStudents() {
   return data;
 }
 
+// Get all students for the authenticated user's school
 export async function getAllStudents() {
   const supabase = await createClient();
-  const schoolId = await getUserSchoolId();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('Unauthorized: User not authenticated');
+  }
+
+  const schoolId = await getUserSchoolId(user);
 
   const { data, error } = await supabase
     .from('students')
@@ -36,48 +66,16 @@ export async function getAllStudents() {
   return data;
 }
 
-export async function getUserSchoolId() {
-  const supabase = await createClient();
-  const { data: userData, error: userError } = await supabase.auth.getUser();
-
-  if (userError || !userData?.user) {
-    throw new Error('User not authenticated');
-  }
-
-  const { data: profileData, error: profileError } = await supabase
-    .from('profiles')
-    .select('school_id')
-    .eq('id', userData.user.id)
-    .single();
-
-  if (profileError || !profileData?.school_id) {
-    throw new Error('Failed to fetch teacher profile or school ID');
-  }
-
-  return profileData.school_id;
-}
-
-// Optimized version - assumes middleware already verified auth
-export async function getUserSchoolIdOptimized() {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-
-  const { data: profileData, error: profileError } = await supabase
-    .from('profiles')
-    .select('school_id')
-    .eq('id', user!.id) // user exists due to middleware
-    .single();
-
-  if (profileError || !profileData?.school_id) {
-    throw new Error('Failed to fetch teacher profile or school ID');
-  }
-
-  return profileData.school_id;
-}
-
+// Search students in the authenticated user's school
 export async function searchStudents(query: string) {
   const supabase = await createClient();
-  const schoolId = await getUserSchoolId();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('Unauthorized: User not authenticated');
+  }
+
+  const schoolId = await getUserSchoolId(user);
 
   const { data, error } = await supabase
     .from('students')
@@ -93,7 +91,7 @@ export async function searchStudents(query: string) {
   return data;
 }
 
-// Create a new student
+// Create a new student (with explicit auth check for mutations)
 export async function createStudent(input: Tables<'students'>) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -102,26 +100,21 @@ export async function createStudent(input: Tables<'students'>) {
     throw new Error('Unauthorized: User not authenticated');
   }
 
-  try {
-    const school_id = await getUserSchoolId();
+  const schoolId = await getUserSchoolId(user);
 
-    const insertData = {
-      full_name: input.full_name,
-      school_year: input.school_year,
-      interests: input.interests,
-      learning_difficulties: input.learning_difficulties,
-      student_badge: input.student_badge,
-      school_id, // Security: Automatically assigns to user's school
-    };
+  const insertData = {
+    full_name: input.full_name,
+    school_year: input.school_year,
+    interests: input.interests,
+    learning_difficulties: input.learning_difficulties,
+    student_badge: input.student_badge,
+    school_id: schoolId, // Security: Automatically assigns to user's school
+  };
 
-    const { error } = await supabase.from('students').insert(insertData);
+  const { error } = await supabase.from('students').insert(insertData);
 
-    if (error) {
-      throw new Error(error.message);
-    }
-  } catch (error) {
-    console.error('Error creating student:', error);
-    throw error; // Rethrow to allow caller to handle if needed
+  if (error) {
+    throw new Error(error.message);
   }
 }
 
@@ -137,28 +130,22 @@ export async function updateStudent(
     throw new Error('Unauthorized: User not authenticated');
   }
 
-  // Get user's school to ensure they can only update students from their school
-  const userSchoolId = await getUserSchoolId();
+  const userSchoolId = await getUserSchoolId(user);
   
-  try {
-    const { error } = await supabase
-      .from('students')
-      .update({
-        full_name: input.full_name,
-        school_year: input.school_year,
-        interests: input.interests,
-        learning_difficulties: input.learning_difficulties,
-        student_badge: input.student_badge,
-      })
-      .eq('id', studentId)
-      .eq('school_id', userSchoolId); // Security: Only update students from user's school
+  const { error } = await supabase
+    .from('students')
+    .update({
+      full_name: input.full_name,
+      school_year: input.school_year,
+      interests: input.interests,
+      learning_difficulties: input.learning_difficulties,
+      student_badge: input.student_badge,
+    })
+    .eq('id', studentId)
+    .eq('school_id', userSchoolId); // Security: Only update students from user's school
 
-    if (error) {
-      throw new Error(error.message);
-    }
-  } catch (error) {
-    console.error('Error updating student:', error);
-    throw error;
+  if (error) {
+    throw new Error(error.message);
   }
 }
 
@@ -171,21 +158,15 @@ export async function deleteStudent(studentId: string) {
     throw new Error('Unauthorized: User not authenticated');
   }
 
-  // Get user's school to ensure they can only delete students from their school
-  const userSchoolId = await getUserSchoolId();
+  const userSchoolId = await getUserSchoolId(user);
   
-  try {
-    const { error } = await supabase
-      .from('students')
-      .delete()
-      .eq('id', studentId)
-      .eq('school_id', userSchoolId); // Security: Only delete students from user's school
+  const { error } = await supabase
+    .from('students')
+    .delete()
+    .eq('id', studentId)
+    .eq('school_id', userSchoolId); // Security: Only delete students from user's school
 
-    if (error) {
-      throw new Error(error.message);
-    }
-  } catch (error) {
-    console.error('Error deleting student:', error);
-    throw error;
+  if (error) {
+    throw new Error(error.message);
   }
 }
