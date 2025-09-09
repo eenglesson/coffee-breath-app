@@ -3,24 +3,11 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import SearchSection from './SearchSection';
 import StudentList from './StudentList';
 import { Tables } from '@/database.types';
-import { createClient } from '@/lib/supabase/client';
 
 import { useStudentsQuery } from '@/app/actions/students/queries';
 
 interface ContainerStudentsProps {
   initialStudents: Tables<'students'>[];
-}
-
-// Custom debounce function specifically for string functions
-function debounceSearch(
-  func: (query: string) => Promise<void>,
-  wait: number
-): (query: string) => void {
-  let timeout: NodeJS.Timeout | null = null;
-  return function (query: string) {
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(() => func(query), wait);
-  };
 }
 
 export default function ContainerStudents({
@@ -31,43 +18,45 @@ export default function ContainerStudents({
     useState<Tables<'students'>[]>(initialStudents);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Use TanStack Query for students data
-  const { data: students = initialStudents, isLoading } = useStudentsQuery();
+  // Use TanStack Query for students data with SSR initial data (prevents redundant fetch)
+  const { data: students = initialStudents, isLoading } =
+    useStudentsQuery(initialStudents);
 
-  const supabase = useMemo(() => createClient(), []);
+  // Search function without debouncing first
+  const executeSearch = useCallback(
+    async (query: string) => {
+      if (query.trim() === '') {
+        setSearchResults(students);
+        setIsSearching(false);
+        return;
+      }
 
-  // Debounced search function - optimized to avoid unnecessary queries
-  const performSearch = useMemo(
-    () =>
-      debounceSearch(async (query: string) => {
-        if (query.trim() === '') {
-          setSearchResults(students);
-          setIsSearching(false);
-          return;
-        }
-
-        setIsSearching(true);
-        try {
-          const sanitizedQuery = query.trim().replace(/[%_]/g, '\\$&');
-          const { data, error } = await supabase
-            .from('students')
-            .select('*')
-            .or(
-              `full_name.ilike.%${sanitizedQuery}%,school_year.ilike.%${sanitizedQuery}%`
-            )
-            .limit(5);
-
-          if (error) {
-            throw new Error(`Error fetching based on query: ${error.message}`);
-          }
-          setSearchResults(data || []);
-        } catch (error) {
-          console.error('Search failed:', error);
-          setSearchResults([]);
-        }
-      }, 350),
-    [supabase, students]
+      setIsSearching(true);
+      try {
+        // Use server action for search (consistent with auth flow)
+        const { searchStudents } = await import(
+          '@/app/actions/students/server'
+        );
+        const data = await searchStudents(query);
+        setSearchResults(data);
+      } catch (error) {
+        console.error('Search failed:', error);
+        setSearchResults([]);
+      } finally {
+        setIsSearching(false);
+      }
+    },
+    [students]
   );
+
+  // Debounced search function
+  const performSearch = useMemo(() => {
+    let timeout: NodeJS.Timeout;
+    return (query: string) => {
+      clearTimeout(timeout);
+      timeout = setTimeout(() => executeSearch(query), 350);
+    };
+  }, [executeSearch]);
 
   // Update search results when students data changes
   useEffect(() => {

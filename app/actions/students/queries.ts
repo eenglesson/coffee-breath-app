@@ -26,12 +26,18 @@ function debounce<T extends (...args: any[]) => any>(
   return debounced;
 }
 
-// Query hook for fetching all students
-export function useStudentsQuery() {
+// Query hook for fetching all students with stale-while-revalidate pattern
+export function useStudentsQuery(initialData?: Tables<'students'>[]) {
   return useQuery({
     queryKey: ['students'],
     queryFn: studentServer.getStudents,
-    staleTime: 1000 * 60 * 5, // Consider data fresh for 5 minutes
+    initialData, // Use SSR data for instant navigation ⚡
+    staleTime: 0, // Always consider data stale → triggers background refetch
+    refetchOnMount: false, // Don't refetch immediately - show initialData first
+    refetchOnWindowFocus: true, // Fresh data when returning to tab
+    refetchOnReconnect: true, // Fresh data when network reconnects
+    gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
+    retry: 2, // Retry failed requests twice
   });
 }
 
