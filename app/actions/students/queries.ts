@@ -32,12 +32,10 @@ export function useStudentsQuery(initialData?: Tables<'students'>[]) {
     queryKey: ['students'],
     queryFn: studentServer.getStudents,
     initialData, // Use SSR data for instant navigation ⚡
-    staleTime: 0, // Always consider data stale → triggers background refetch
-    refetchOnMount: false, // Don't refetch immediately - show initialData first
+    staleTime: 0, // Always consider data stale → checks for other teachers' updates
+    refetchOnMount: true, // Always refetch when navigating to page
     refetchOnWindowFocus: true, // Fresh data when returning to tab
-    refetchOnReconnect: true, // Fresh data when network reconnects
-    gcTime: 1000 * 60 * 10, // Keep in cache for 10 minutes
-    retry: 2, // Retry failed requests twice
+    gcTime: 1000 * 60 * 5, // Keep cached for 5 minutes
   });
 }
 
