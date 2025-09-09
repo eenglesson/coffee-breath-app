@@ -1,6 +1,4 @@
 import ChatInterface from '@/app/components/chat/chat-interface';
-import { createClient } from '@/lib/supabase/server';
-import { redirect } from 'next/navigation';
 
 interface PageProps {
   params: Promise<{
@@ -10,12 +8,7 @@ interface PageProps {
 
 export default async function ConversationPage({ params }: PageProps) {
   const { conversationId } = await params;
-  const supabase = await createClient();
-  const { data: authUser } = await supabase.auth.getUser();
-
-  if (!authUser || !authUser.user) {
-    redirect('/auth/login');
-  }
+  // Auth is handled by middleware - no need for redundant checks
 
   return (
     <div className='h-full w-full'>

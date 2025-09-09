@@ -5,6 +5,7 @@ import {
   Bell,
   ChevronsUpDown,
   CreditCard,
+  LogOutIcon,
   Sparkles,
 } from 'lucide-react';
 
@@ -25,11 +26,19 @@ import {
   useSidebar,
 } from '@/components/ui/sidebar';
 
-import LogOutBtn from './LogOutBtn';
 import { Tables } from '@/database.types';
+import { createClient } from '@/lib/supabase/client';
+import { useRouter } from 'next/navigation';
 
 export function NavUser({ profile }: { profile: Tables<'profiles'> }) {
+  const router = useRouter();
   const { isMobile } = useSidebar();
+
+  const handleLogout = async () => {
+    const supabase = createClient();
+    await supabase.auth.signOut();
+    router.push('/auth/login');
+  };
 
   return (
     <SidebarMenu>
@@ -130,8 +139,12 @@ export function NavUser({ profile }: { profile: Tables<'profiles'> }) {
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <LogOutBtn />
+            <DropdownMenuItem
+              variant='destructive'
+              onClick={() => handleLogout()}
+            >
+              <LogOutIcon className='text-destructive' />
+              Logout
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

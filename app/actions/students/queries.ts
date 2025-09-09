@@ -39,7 +39,44 @@ export function useCreateStudent() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: studentServer.createStudent,
-    onSuccess: () => {
+    // Optimistic update: add the new student locally immediately
+    onMutate: async (newStudent) => {
+      await queryClient.cancelQueries({ queryKey: ['students'] });
+
+      const previousStudents =
+        queryClient.getQueryData<Tables<'students'>[]>(['students']) || [];
+
+      const tempId =
+        (typeof crypto !== 'undefined' && 'randomUUID' in crypto
+          ? crypto.randomUUID()
+          : `temp-${Date.now()}`) as string;
+
+      const optimisticStudent: Tables<'students'> = {
+        id: tempId,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        full_name: newStudent.full_name ?? null,
+        school_year: newStudent.school_year ?? null,
+        interests: newStudent.interests ?? null,
+        learning_difficulties: newStudent.learning_difficulties ?? null,
+        student_badge: newStudent.student_badge ?? null,
+        // Will be set by server; avoid guessing
+        school_id: null,
+      } as Tables<'students'>;
+
+      queryClient.setQueryData<Tables<'students'>[]>(
+        ['students'],
+        [optimisticStudent, ...previousStudents]
+      );
+
+      return { previousStudents };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previousStudents) {
+        queryClient.setQueryData(['students'], context.previousStudents);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['students'] });
     },
   });
@@ -55,7 +92,41 @@ export function useUpdateStudent() {
       studentId: string;
       input: Tables<'students'>;
     }) => studentServer.updateStudent(studentId, input),
-    onSuccess: () => {
+    // Optimistic update: update the student locally
+    onMutate: async ({ studentId, input }) => {
+      await queryClient.cancelQueries({ queryKey: ['students'] });
+
+      const previousStudents =
+        queryClient.getQueryData<Tables<'students'>[]>(['students']) || [];
+
+      const nextStudents = previousStudents.map((student) =>
+        student.id === studentId
+          ? ({
+              ...student,
+              full_name: input.full_name ?? student.full_name,
+              school_year: input.school_year ?? student.school_year,
+              interests: input.interests ?? student.interests,
+              learning_difficulties:
+                input.learning_difficulties ?? student.learning_difficulties,
+              student_badge: input.student_badge ?? student.student_badge,
+              updated_at: new Date().toISOString(),
+            } as Tables<'students'>)
+          : student
+      );
+
+      queryClient.setQueryData<Tables<'students'>[]>(
+        ['students'],
+        nextStudents
+      );
+
+      return { previousStudents };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previousStudents) {
+        queryClient.setQueryData(['students'], context.previousStudents);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['students'] });
     },
   });
@@ -65,7 +136,30 @@ export function useDeleteStudent() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: studentServer.deleteStudent,
-    onSuccess: () => {
+    // Optimistic update: remove the student locally
+    onMutate: async (studentId: string) => {
+      await queryClient.cancelQueries({ queryKey: ['students'] });
+
+      const previousStudents =
+        queryClient.getQueryData<Tables<'students'>[]>(['students']) || [];
+
+      const nextStudents = previousStudents.filter(
+        (student) => student.id !== studentId
+      );
+
+      queryClient.setQueryData<Tables<'students'>[]>(
+        ['students'],
+        nextStudents
+      );
+
+      return { previousStudents };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previousStudents) {
+        queryClient.setQueryData(['students'], context.previousStudents);
+      }
+    },
+    onSettled: () => {
       queryClient.invalidateQueries({ queryKey: ['students'] });
     },
   });

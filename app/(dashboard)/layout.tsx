@@ -7,23 +7,16 @@ import { ConversationsProvider } from '@/lib/context/ConversationsContext';
 import { ConversationSessionProvider } from '@/lib/context/ConversationSessionContext';
 import { SchoolProvider } from '@/lib/context/SchoolYearContext';
 
-import { getAuthenticatedProfile } from '@/app/actions/profiles/server';
-import { getUserSchool } from '@/app/actions/schools/server';
-
-import { redirect } from 'next/navigation';
+import { getProfileWithSchool } from '@/app/actions/profiles/server';
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const profile = await getAuthenticatedProfile();
-  if (!profile) {
-    redirect('/auth/login');
-  }
-
-  // Fetch the complete school information for the user
-  const school = await getUserSchool();
+  // Middleware already verified auth, so fetch data directly
+  // Combined query reduces database calls from 3+ to 1
+  const { profile, school } = await getProfileWithSchool();
 
   return (
     <TanstackQueryProvider>

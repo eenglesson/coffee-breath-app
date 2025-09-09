@@ -64,6 +64,24 @@ export async function getUserConversations(): Promise<Conversation[]> {
   return data;
 }
 
+// Optimized version - assumes middleware already verified auth
+export async function getUserConversationsOptimized(): Promise<Conversation[]> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { data, error } = await supabase
+    .from('ai_conversations')
+    .select('*')
+    .eq('teacher_id', user!.id) // user exists due to middleware
+    .order('updated_at', { ascending: false });
+
+  if (error) {
+    throw new Error(`Failed to get conversations: ${error.message}`);
+  }
+
+  return data;
+}
+
 export async function updateConversationTitle(
   conversationId: string,
   title: string
@@ -200,6 +218,27 @@ export async function getConversationById(
     .select('*')
     .eq('id', conversationId)
     .eq('teacher_id', authUser.user.id)
+    .single();
+
+  if (error) {
+    return null;
+  }
+
+  return data;
+}
+
+// Optimized version - assumes middleware already verified auth
+export async function getConversationByIdOptimized(
+  conversationId: string
+): Promise<Conversation | null> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
+  const { data, error } = await supabase
+    .from('ai_conversations')
+    .select('*')
+    .eq('id', conversationId)
+    .eq('teacher_id', user!.id) // user exists due to middleware
     .single();
 
   if (error) {

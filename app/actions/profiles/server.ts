@@ -28,3 +28,45 @@ export async function getAuthenticatedProfile() {
 
   return profile;
 }
+
+// Optimized version - assumes middleware already verified auth
+export async function getProfileOptimized() {
+  const supabase = await createClient();
+  
+  // No auth check needed - middleware already did this
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user!.id) // user exists due to middleware
+    .single();
+    
+  return profile;
+}
+
+// Combine profile and school fetching in single query
+export async function getProfileWithSchool() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  // Single query with join to get both profile and school
+  const { data, error } = await supabase
+    .from('profiles')
+    .select(`
+      *,
+      schools:school_id (*)
+    `)
+    .eq('id', user!.id)
+    .single();
+    
+  if (error || !data) {
+    console.error('Error fetching profile with school:', error?.message);
+    throw new Error('Failed to fetch profile data');
+  }
+    
+  return {
+    profile: data,
+    school: data.schools
+  };
+}

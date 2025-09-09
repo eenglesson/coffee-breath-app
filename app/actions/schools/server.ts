@@ -3,7 +3,27 @@ import { Tables } from '@/database.types';
 
 export async function getSchoolYears() {
   const supabase = await createClient();
-  const { data, error } = await supabase.from('schools').select('school_year');
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    throw new Error('Unauthorized: User not authenticated');
+  }
+
+  // Only return school years for the authenticated user's school
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('school_id')
+    .eq('id', user.id)
+    .single();
+
+  if (!profile?.school_id) {
+    throw new Error('User profile or school not found');
+  }
+
+  const { data, error } = await supabase
+    .from('schools')
+    .select('school_year')
+    .eq('id', profile.school_id);
 
   if (error) {
     console.error('Error fetching school years:', error.message);
@@ -11,7 +31,6 @@ export async function getSchoolYears() {
   }
 
   console.log('Fetched school years:', data);
-
   return data;
 }
 
