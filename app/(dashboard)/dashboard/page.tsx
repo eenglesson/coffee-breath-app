@@ -17,7 +17,7 @@ export default async function DashboardPage() {
         </p>
       </header>
       <GraphInfo />
-      <div className='flex flex-wrap gap-4 [&>*]:flex-[1_1_370px]'>
+      <div className='flex flex-wrap gap-4 [&>*]:flex-[1_1_370px] pt-4'>
         <ChatHistoryCard />
         <LessonPlanHistoryCard />
         <LessonPlanHistoryCard />

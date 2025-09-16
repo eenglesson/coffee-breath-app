@@ -4,7 +4,7 @@ import React from 'react';
 
 function LessonPlanHistoryCard() {
   return (
-    <Card className='shadow-none border-none bg-accent/70 [&_>*]:p-2 p-2 gap-0'>
+    <Card className='shadow-none border-none bg-accent/60 [&_>*]:p-2 p-2 gap-0'>
       <CardHeader className='flex justify-between'>
         <CardTitle className='text-xl font-medium'>
           Lesson Plan History

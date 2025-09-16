@@ -48,7 +48,7 @@ export default function ChatHistoryCard() {
   };
 
   return (
-    <Card className='shadow-none border-none bg-accent/70 [&_>*]:p-2 p-2 gap-0'>
+    <Card className='shadow-none border-none bg-accent/60 [&_>*]:p-2 p-2 gap-0'>
       <CardHeader className='flex justify-between'>
         <div className='-space-y-0.5 w-full'>
           <div className='flex items-center justify-between w-full'>
@@ -84,7 +84,7 @@ export default function ChatHistoryCard() {
           latestConversations.map((conversation: ConversationWithPreview) => (
             <div
               key={conversation.id}
-              className='bg-background rounded-xl p-2.5 flex flex-col gap-1 cursor-default hover:bg-muted-foreground/5 transition-colors'
+              className='bg-background rounded-xl p-2.5 flex flex-col gap-0.5 cursor-default hover:bg-muted-foreground/5 transition-colors'
               onClick={() => handleConversationClick(conversation.id)}
             >
               <div className='flex items-center gap-2'>
