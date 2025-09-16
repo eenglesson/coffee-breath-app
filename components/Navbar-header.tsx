@@ -24,7 +24,7 @@ export default function NavbarHeader() {
   return (
     <header className='sticky backdrop-blur supports-[backdrop-filter]:bg-background/85 z-5 top-0 flex h-16 shrink-0 items-center justify-between transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12'>
       <div className='flex items-center justify-between gap-2 px-4 min-w-0 flex-1'>
-        <SidebarTrigger className='-ml-1 rounded-full' />
+        <SidebarTrigger className='-ml-1 rounded-lg' />
         <Separator
           orientation='vertical'
           className='mr-2 data-[orientation=vertical]:h-4 hidden md:block'
@@ -39,7 +39,7 @@ export default function NavbarHeader() {
                 <TooltipTrigger asChild>
                   <button
                     aria-label='New Chat'
-                    className='text-muted-foreground hover:text-foreground hover:bg-muted pointer-events-auto rounded-full p-2 transition-colors'
+                    className='text-muted-foreground hover:text-foreground hover:bg-muted pointer-events-auto rounded-lg p-2 transition-colors'
                     onClick={() => router.push('/dashboard/ai-chat')}
                   >
                     <SquarePen size={18} />

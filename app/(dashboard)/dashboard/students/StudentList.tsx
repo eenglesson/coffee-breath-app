@@ -46,7 +46,7 @@ export default function StudentList({
       {displayedStudents.map((student) => (
         <Card
           key={student.id}
-          className='h-[24rem] flex-1 w-full flex flex-col overflow-hidden pb-4 gap-0'
+          className='h-[24rem] flex-1 w-full flex flex-col overflow-hidden pb-4 gap-0 rounded-3xl [&_>*]:p-2 p-2'
         >
           <CardHeader className='flex justify-between'>
             <aside>
@@ -105,8 +105,10 @@ export default function StudentList({
           <CardFooter className=' flex w-full justify-center mt-auto'>
             <span className='text-sm text-muted-foreground flex items-center  gap-2'>
               <div className='w-2 h-2 bg-green-500 rounded-full'></div>
-              Updated{' '}
-              {student.updated_at ? formatDate(student.updated_at) : 'Never'}
+              {student.updated_at ? 'Updated ' : 'Created '}
+              {student.updated_at
+                ? formatDate(student.updated_at)
+                : formatDate(student.created_at)}
             </span>
           </CardFooter>
         </Card>

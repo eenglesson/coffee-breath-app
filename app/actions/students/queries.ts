@@ -26,16 +26,21 @@ function debounce<T extends (...args: any[]) => any>(
   return debounced;
 }
 
-// Query hook for fetching all students with stale-while-revalidate pattern
+// Race-condition safe: Only updates on navigation/reload, never while editing
 export function useStudentsQuery(initialData?: Tables<'students'>[]) {
   return useQuery({
     queryKey: ['students'],
     queryFn: studentServer.getStudents,
-    initialData, // Use SSR data for instant navigation ⚡
-    staleTime: 0, // Always consider data stale → checks for other teachers' updates
-    refetchOnMount: true, // Always refetch when navigating to page
-    refetchOnWindowFocus: true, // Fresh data when returning to tab
-    gcTime: 1000 * 60 * 5, // Keep cached for 5 minutes
+    initialData, // SSR data gets cached here ⚡
+    staleTime: 1000 * 60 * 30, // 30 minutes - very long to avoid background refetch
+    refetchOnMount: false, // Never refetch while on page - prevents race conditions
+    refetchOnWindowFocus: false, // Never refetch on focus - teacher might be editing
+    refetchOnReconnect: false, // Never refetch on reconnect - avoid interrupting work
+    gcTime: 1000 * 60 * 60, // 1 hour memory retention
+    // Data only updates via:
+    // 1. Mutations (create/update/delete) -> cache invalidation
+    // 2. Navigation away and back -> fresh server fetch
+    // 3. Page reload -> fresh SSR data
   });
 }
 

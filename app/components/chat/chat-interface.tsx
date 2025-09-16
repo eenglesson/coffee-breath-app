@@ -219,9 +219,9 @@ export default function ChatInterface({
   return (
     <section className='w-full h-[calc(100vh-64px)] flex items-center justify-center'>
       {showStarter ? (
-        <div className='flex flex-col justify-center items-center max-w-3xl w-full'>
+        <div className='relative flex flex-col justify-center items-center max-w-3xl w-full'>
           <div>
-            <h1 className='mb-2 text-3xl text-center font-medium tracking-tight'>
+            <h1 className='absolute bottom-32 left-0 right-0 mb-2 text-3xl text-center font-medium tracking-tight'>
               What&apos;s on your mind?
             </h1>
           </div>

@@ -49,7 +49,7 @@ export function HistoryTrigger({
   const defaultTrigger = (
     <button
       className={cn(
-        'text-muted-foreground hover:text-foreground hover:bg-muted pointer-events-auto rounded-full p-1.5 transition-colors',
+        'text-muted-foreground hover:text-foreground hover:bg-muted pointer-events-auto rounded-lg p-1.5 transition-colors',
         hasSidebar ? 'hidden' : 'block',
         classNameTrigger
       )}

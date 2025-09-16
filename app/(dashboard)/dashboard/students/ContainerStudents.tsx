@@ -18,7 +18,7 @@ export default function ContainerStudents({
     useState<Tables<'students'>[]>(initialStudents);
   const [isSearching, setIsSearching] = useState(false);
 
-  // Use TanStack Query for students data with SSR initial data (prevents redundant fetch)
+  // Race-condition safe: Data only updates on navigation/mutations, never while editing
   const { data: students = initialStudents, isLoading } =
     useStudentsQuery(initialStudents);
 

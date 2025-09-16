@@ -67,7 +67,9 @@ export async function getUserConversations(): Promise<Conversation[]> {
 // Optimized version - assumes middleware already verified auth
 export async function getUserConversationsOptimized(): Promise<Conversation[]> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const { data, error } = await supabase
     .from('ai_conversations')
@@ -232,7 +234,9 @@ export async function getConversationByIdOptimized(
   conversationId: string
 ): Promise<Conversation | null> {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const { data, error } = await supabase
     .from('ai_conversations')

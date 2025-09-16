@@ -53,7 +53,7 @@ const paths = {
       url: '/dashboard/create-lesson-plan',
     },
     {
-      title: 'Ask Coffee Breath',
+      title: 'AI Chat',
       url: '/dashboard/ai-chat',
       icon: MessageSquareText,
     },

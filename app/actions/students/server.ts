@@ -1,6 +1,7 @@
 'use server';
 import { Tables } from '@/database.types';
 import { createClient } from '@/lib/supabase/server';
+import { getProfileOptimized } from '../profiles/server';
 
 // Get students - RLS handles school filtering automatically
 export async function getStudents() {
@@ -53,6 +54,12 @@ export async function searchStudents(query: string) {
 // Create a new student - RLS handles school assignment
 export async function createStudent(input: Tables<'students'>) {
   const supabase = await createClient();
+
+  const profile = await getProfileOptimized();
+
+  if (!profile?.school_id) {
+    throw new Error('User must be associated with a school to create students');
+  }
   
   const insertData = {
     full_name: input.full_name,
@@ -60,7 +67,7 @@ export async function createStudent(input: Tables<'students'>) {
     interests: input.interests,
     learning_difficulties: input.learning_difficulties,
     student_badge: input.student_badge,
-    // RLS will automatically set correct school_id based on authenticated user
+    school_id: profile.school_id,
   };
 
   const { error } = await supabase.from('students').insert(insertData);

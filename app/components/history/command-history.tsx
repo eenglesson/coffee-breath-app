@@ -213,14 +213,14 @@ function CommandItemRow({
 
   return (
     <>
-      <div className='flex min-w-0 flex-1 items-center gap-2'>
+      <div className='flex min-w-0 flex-1 items-center justify-start gap-2'>
         <span className='line-clamp-1 text-base font-normal'>
           {conversation?.title || 'Untitled Conversation'}
         </span>
         {isCurrentConversation && <Badge variant='outline'>current</Badge>}
       </div>
 
-      <div className='relative flex min-w-[140px] flex-shrink-0 items-center justify-end'>
+      <div className='relative flex flex-shrink-0 items-center justify-end'>
         <div className='text-muted-foreground mr-2 text-xs transition-opacity duration-200 group-hover:opacity-0'>
           {formatDate(conversation.updated_at || conversation.created_at)}
         </div>
