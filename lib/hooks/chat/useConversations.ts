@@ -129,7 +129,10 @@ export function useUpdateConversationTitle() {
     onMutate: async (params) => {
       // Optimistically update the title in cache
       queryClient.setQueriesData(
-        { queryKey: ['conversations'] },
+        {
+          predicate: (query) =>
+            Array.isArray(query.queryKey) && query.queryKey[0] === 'conversations',
+        },
         (old: ConversationWithPreview[] | undefined) => {
           if (!old) return old;
           return old.map((conv) =>
@@ -149,7 +152,10 @@ export function useUpdateConversationTitle() {
     },
     onSettled: (data, error, params) => {
       // Invalidate specific conversation queries
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          Array.isArray(query.queryKey) && query.queryKey[0] === 'conversations',
+      });
       queryClient.invalidateQueries({
         queryKey: ['messages', params.conversationId],
       });
@@ -173,7 +179,10 @@ export function useDeleteConversation() {
     onMutate: async (conversationId) => {
       // Optimistically remove from cache
       queryClient.setQueriesData(
-        { queryKey: ['conversations'] },
+        {
+          predicate: (query) =>
+            Array.isArray(query.queryKey) && query.queryKey[0] === 'conversations',
+        },
         (old: ConversationWithPreview[] | undefined) => {
           if (!old) return old;
           return old.filter((conv) => conv.id !== conversationId);
@@ -184,6 +193,9 @@ export function useDeleteConversation() {
       // Navigate away if we're currently viewing this conversation
       const currentPath = window.location.pathname;
       if (currentPath.includes(conversationId)) {
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('chat:new'));
+        }
         router.push('/dashboard/ai-chat');
       }
 
@@ -194,7 +206,10 @@ export function useDeleteConversation() {
     },
     onSettled: (conversationId) => {
       // Invalidate queries
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          Array.isArray(query.queryKey) && query.queryKey[0] === 'conversations',
+      });
       if (conversationId) {
         queryClient.removeQueries({ queryKey: ['messages', conversationId] });
         queryClient.removeQueries({

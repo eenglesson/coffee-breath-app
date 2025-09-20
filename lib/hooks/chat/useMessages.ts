@@ -25,6 +25,9 @@ interface ConversationUpdate {
   preview?: Array<{ content: string; sender: string }>;
   title?: string;
   updated_at?: string;
+  last_message?: AiMessage;
+  message_count_delta?: number;
+  append_message?: AiMessage;
 }
 
 export function useConversationCache() {
@@ -35,15 +38,48 @@ export function useConversationCache() {
     updates: ConversationUpdate
   ) => {
     // Update the conversation with new data (instant)
+    const { message_count_delta = 0, append_message, ...rest } = updates;
+
     queryClient.setQueriesData(
-      { queryKey: ['conversations'] },
-      (old: Array<{ id: string; [key: string]: unknown }> | undefined) => {
+      {
+        predicate: (query) =>
+          Array.isArray(query.queryKey) && query.queryKey[0] === 'conversations',
+      },
+      (old: Array<{ id: string; message_count?: number }> | undefined) => {
         if (!old) return old;
-        return old.map((conv) =>
-          conv.id === conversationId
-            ? { ...conv, ...updates, updated_at: new Date().toISOString() }
-            : conv
-        );
+
+        return old.map((conv) => {
+          if (conv.id !== conversationId) return conv;
+
+          const next = { ...conv, ...rest } as {
+            id: string;
+            message_count?: number;
+            updated_at?: string;
+          } & typeof rest;
+
+          if (message_count_delta) {
+            const currentCount = typeof conv.message_count === 'number'
+              ? conv.message_count
+              : 0;
+            next.message_count = Math.max(0, currentCount + message_count_delta);
+          }
+
+          if (!rest.updated_at) {
+            next.updated_at = new Date().toISOString();
+          }
+
+          if (append_message) {
+            const existingMessages = Array.isArray((conv as { messages?: AiMessage[] }).messages)
+              ? ((conv as { messages?: AiMessage[] }).messages as AiMessage[])
+              : [];
+            (next as { messages?: AiMessage[] }).messages = [
+              ...existingMessages,
+              append_message,
+            ];
+          }
+
+          return next;
+        });
       }
     );
   };
@@ -144,7 +180,10 @@ export function useAddMessage() {
         queryKey: ['messages', newMessage.conversation_id],
       });
       // Also update conversation list to show new last message
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({
+        predicate: (query) =>
+          Array.isArray(query.queryKey) && query.queryKey[0] === 'conversations',
+      });
       // Invalidate preview cache for this conversation
       queryClient.invalidateQueries({
         queryKey: ['conversation-messages-preview', newMessage.conversation_id],
@@ -290,7 +329,10 @@ export function useDeleteMessage() {
           queryKey: ['messages', context.conversationId],
         });
         // Update conversation list in case this was the last message
-        queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            Array.isArray(query.queryKey) && query.queryKey[0] === 'conversations',
+        });
         queryClient.invalidateQueries({
           queryKey: ['conversation-messages-preview', context.conversationId],
         });

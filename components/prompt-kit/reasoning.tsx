@@ -206,7 +206,7 @@ function ReasoningContent({
   className,
   contentClassName,
   markdown = false,
-  maxOpenHeight = 240,
+  maxOpenHeight = 140,
   ...props
 }: ReasoningContentProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -251,12 +251,12 @@ function ReasoningContent({
       >
         {isOpen ? (
           <div style={{ height: `${maxOpenHeight}px` }} className='w-full '>
-            <Card className='h-full w-full rounded-lg py-0 pr-0 shadow-none'>
+            <Card className='h-full w-full overflow-hidden rounded-lg py-0 shadow-none'>
               <CardContent
-                className={cn('h-full w-full pl-3 pr-0', contentClassName)}
+                className={cn('h-full w-full p-0', contentClassName)}
               >
                 <ScrollArea className='h-full w-full bg-transparent'>
-                  <div className='prose prose-sm dark:prose-invert w-full text-accent-foreground'>
+                  <div className='prose prose-sm dark:prose-invert w-full px-3 py-3 pr-5 text-accent-foreground'>
                     {rendered}
                   </div>
                 </ScrollArea>

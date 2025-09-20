@@ -40,6 +40,13 @@ export default function ChatHistoryCard() {
   const router = useRouter();
   const { conversations, isLoading, error } = useConversations();
 
+  const handleNewChat = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('chat:new'));
+    }
+    router.push('/dashboard/ai-chat');
+  };
+
   // Get the first 4 conversations
   const latestConversations = conversations.slice(0, 6);
 
@@ -55,7 +62,7 @@ export default function ChatHistoryCard() {
             <CardTitle className='text-xl font-medium'> Chat History</CardTitle>
             <Button
               className='text-sm font-medium gap-2 py-1 h-fit'
-              onClick={() => router.push('/dashboard/ai-chat')}
+              onClick={handleNewChat}
             >
               <CirclePlus className='size-4' />
               New Chat
