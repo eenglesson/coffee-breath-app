@@ -18,6 +18,13 @@ export default function NavbarHeader() {
   const pathname = usePathname();
   const router = useRouter();
 
+  const handleNewChat = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('chat:new'));
+    }
+    router.push('/dashboard/ai-chat');
+  };
+
   // Only show HistoryTrigger on ai-chat paths
   const isCreateQuestionsPath = pathname.startsWith('/dashboard/ai-chat');
 
@@ -40,7 +47,7 @@ export default function NavbarHeader() {
                   <button
                     aria-label='New Chat'
                     className='text-muted-foreground hover:text-foreground hover:bg-muted pointer-events-auto rounded-lg p-2 transition-colors'
-                    onClick={() => router.push('/dashboard/ai-chat')}
+                    onClick={handleNewChat}
                   >
                     <SquarePen size={18} />
                   </button>

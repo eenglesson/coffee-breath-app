@@ -1,7 +1,7 @@
 'use client';
 
 import { useChat } from '@ai-sdk/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import { createConversation } from '@/app/actions/conversations/conversations';
@@ -47,11 +47,20 @@ export default function ChatInterface({
       school_year: string | null;
     }[]
   >([]);
+  const createChatSessionId = useCallback(
+    () => `chat-session-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    []
+  );
+
   const [conversationId, setConversationId] = useState<string | null>(
     propConversationId || null
   );
   const [input, setInput] = useState('');
   const { searchMode, toggleSearchMode } = useSearchMode();
+  const previousPathnameRef = useRef(pathname);
+  const skipSeedRef = useRef(false);
+  const streamingConversationIdRef = useRef<string | null>(null);
+  const [chatSessionId, setChatSessionId] = useState(createChatSessionId);
 
   // Use shared TanStack hook to load messages and leverage centralized cache keys and timings
   const currentConversationId = propConversationId || conversationId;
@@ -67,21 +76,24 @@ export default function ChatInterface({
     transport: new DefaultChatTransport({
       api: '/api/chat',
     }),
+    id: chatSessionId,
     onError: (error) => {
       console.error('useChat error:', error);
     },
     onFinish: async ({ message }) => {
+      const completedConversationId = streamingConversationIdRef.current;
+
       // Clean cache sync when AI finishes responding
-      if (message.role === 'assistant' && currentConversationId) {
+      if (message.role === 'assistant' && completedConversationId) {
         try {
           // Convert AI SDK message to DB format
           const dbMessage = convertUIMessageToDbMessage(
             message,
-            currentConversationId
+            completedConversationId
           );
           const fullMessage: AiMessage = {
             id: message.id,
-            conversation_id: currentConversationId,
+            conversation_id: completedConversationId,
             content: dbMessage.content,
             sender: 'assistant',
             metadata: dbMessage.metadata || null,
@@ -89,9 +101,9 @@ export default function ChatInterface({
           };
 
           // Update caches instantly (queryClient.setQueryData is synchronous)
-          addMessageToCache(currentConversationId, fullMessage);
+          addMessageToCache(completedConversationId, fullMessage);
 
-          updateConversation(currentConversationId, {
+          updateConversation(completedConversationId, {
             preview: [
               {
                 content:
@@ -101,11 +113,19 @@ export default function ChatInterface({
                 sender: fullMessage.sender,
               },
             ],
+            last_message: fullMessage,
+            message_count_delta: 1,
+            append_message: fullMessage,
           });
 
-          updatePreview(currentConversationId, fullMessage);
+          updatePreview(completedConversationId, fullMessage);
         } catch (error) {
           console.error('Failed to sync caches:', error);
+        } finally {
+          queryClient.invalidateQueries({
+            queryKey: ['messages', completedConversationId],
+          });
+          streamingConversationIdRef.current = null;
         }
       }
     },
@@ -113,25 +133,85 @@ export default function ChatInterface({
 
   // Simple conversation loading: seed AI SDK with history once
   useEffect(() => {
+    if (streamingConversationIdRef.current) return;
+
     if (
       currentConversationId &&
       dbMessages.length > 0 &&
       messages.length === 0 &&
-      status === 'ready'
+      status === 'ready' &&
+      !skipSeedRef.current
     ) {
       // Let AI SDK handle the conversation history
       setMessages(convertDbMessagesToUIMessages(dbMessages));
     }
-  }, [currentConversationId, dbMessages, messages.length, status, setMessages]);
+  }, [
+    currentConversationId,
+    dbMessages,
+    messages.length,
+    status,
+    setMessages,
+  ]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleNewChatNavigation = () => {
+      skipSeedRef.current = true;
+      setChatSessionId(createChatSessionId());
+      setMessages([]);
+      setConversationId(null);
+    };
+
+    window.addEventListener('chat:new', handleNewChatNavigation);
+
+    return () => {
+      window.removeEventListener('chat:new', handleNewChatNavigation);
+    };
+  }, [setMessages, createChatSessionId]);
+
+  useEffect(() => {
+    const isFreshChat = !propConversationId && conversationId === null;
+
+    if (isFreshChat && messages.length > 0) {
+      setMessages([]);
+    }
+  }, [propConversationId, conversationId, messages.length, setMessages]);
+
+  useEffect(() => {
+    const previousPathname = previousPathnameRef.current;
+    const navigatedToFreshChat =
+      pathname === '/dashboard/ai-chat' &&
+      previousPathname !== '/dashboard/ai-chat' &&
+      !propConversationId;
+
+    if (navigatedToFreshChat) {
+      if (messages.length > 0) {
+        setMessages([]);
+      }
+
+      if (conversationId !== null) {
+        setConversationId(null);
+      }
+
+      skipSeedRef.current = false;
+    }
+
+    previousPathnameRef.current = pathname;
+  }, [pathname, propConversationId, messages.length, conversationId, setMessages]);
 
   // Cache invalidation is now handled in useChat onFinish callback
   // This reduces race conditions and over-invalidating
 
   // Sync internal conversationId state with prop changes
   useEffect(() => {
-    if (propConversationId && propConversationId !== conversationId) {
+    if (!propConversationId) return;
+
+    if (conversationId !== propConversationId) {
       setConversationId(propConversationId);
     }
+
+    skipSeedRef.current = false;
   }, [propConversationId, conversationId]);
 
   // Custom submit function
@@ -163,7 +243,11 @@ export default function ChatInterface({
         } catch {}
 
         setConversationId(currentConversationId);
-        queryClient.invalidateQueries({ queryKey: ['conversations'] });
+        queryClient.invalidateQueries({
+          predicate: (query) =>
+            Array.isArray(query.queryKey) && query.queryKey[0] === 'conversations',
+        });
+        skipSeedRef.current = false;
 
         if (onNewConversation) {
           onNewConversation({
@@ -177,6 +261,38 @@ export default function ChatInterface({
         console.error('Failed to create conversation:', error);
         // Fall back to normal chat
       }
+    }
+
+    if (currentConversationId) {
+      streamingConversationIdRef.current = currentConversationId;
+
+      const optimisticUserMessage: AiMessage = {
+        id: `optimistic-user-${Date.now()}`,
+        conversation_id: currentConversationId,
+        content: messageToSend,
+        sender: 'user',
+        metadata: null,
+        created_at: new Date().toISOString(),
+      };
+
+      addMessageToCache(currentConversationId, optimisticUserMessage);
+
+      updateConversation(currentConversationId, {
+        preview: [
+          {
+            content:
+              messageToSend.length > 100
+                ? messageToSend.substring(0, 100) + '...'
+                : messageToSend,
+            sender: 'user',
+          },
+        ],
+        last_message: optimisticUserMessage,
+        message_count_delta: 1,
+        append_message: optimisticUserMessage,
+      });
+
+      updatePreview(currentConversationId, optimisticUserMessage);
     }
 
     // Submit to AI

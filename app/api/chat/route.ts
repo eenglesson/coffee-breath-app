@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     const requestStartTime = Date.now();
 
     const result = streamText({
-      model: xai('grok-3-mini'),
+      model: xai('grok-3-mini-latest'),
       system:
         'You are a helpful assistant for teachers to create educational content and questions for students. Answer with same language as user. you have tools for giving the best answers. If you have Links provide them inside the repsonse where you think it is relevant. provide all the links that you use in the response.',
       messages: convertToModelMessages(messages),
