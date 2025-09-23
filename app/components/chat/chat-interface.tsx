@@ -1,7 +1,6 @@
 'use client';
-
 import { useChat } from '@ai-sdk/react';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { usePathname } from 'next/navigation';
 import { createConversation } from '@/app/actions/conversations/conversations';
@@ -11,15 +10,9 @@ import { Conversation } from './conversation';
 import { Database } from '@/database.types';
 import { DefaultChatTransport } from 'ai';
 import { convertDbMessagesToUIMessages } from '@/lib/utils/message-conversion';
-import {
-  useConversationMessages,
-  useMessageCache,
-  useConversationCache,
-  usePreviewCache,
-} from '@/lib/hooks/chat/useMessages';
+import { useConversationMessages } from '@/lib/hooks/chat/useMessages';
 import { useSearchMode } from '@/app/hooks/use-search-mode';
-import { convertUIMessageToDbMessage } from '@/lib/utils/message-conversion';
-import { AiMessage } from '@/lib/types/chat';
+
 type DbMessage = Database['public']['Tables']['ai_messages']['Row'];
 
 interface ChatInterfaceProps {
@@ -55,14 +48,24 @@ export default function ChatInterface({
 
   // Use shared TanStack hook to load messages and leverage centralized cache keys and timings
   const currentConversationId = propConversationId || conversationId;
+  const conversationIdRef = useRef<string | null>(
+    currentConversationId ?? null
+  );
+  const previousConversationIdRef = useRef<string | null>(
+    currentConversationId ?? null
+  );
+
+  useEffect(() => {
+    conversationIdRef.current = currentConversationId ?? null;
+  }, [currentConversationId]);
+
   const { data: dbMessages = [], isLoading: isLoadingMessages } =
     useConversationMessages(currentConversationId ?? null);
 
-  const { addMessageToCache } = useMessageCache();
-  const { updateConversation } = useConversationCache();
-  const { updatePreview } = usePreviewCache();
-
+  // useChat uses stable ID that never changes - prevents transcript loss!
   const { messages, sendMessage, regenerate, status, setMessages } = useChat({
+    id: 'current-chat', // Stable key - hook state survives URL changes
+
     experimental_throttle: 50,
     transport: new DefaultChatTransport({
       api: '/api/chat',
@@ -70,99 +73,84 @@ export default function ChatInterface({
     onError: (error) => {
       console.error('useChat error:', error);
     },
-    onFinish: async ({ message }) => {
-      // Clean cache sync when AI finishes responding
-      if (message.role === 'assistant' && currentConversationId) {
-        try {
-          // Convert AI SDK message to DB format
-          const dbMessage = convertUIMessageToDbMessage(
-            message,
-            currentConversationId
-          );
-          const fullMessage: AiMessage = {
-            id: message.id,
-            conversation_id: currentConversationId,
-            content: dbMessage.content,
-            sender: 'assistant',
-            metadata: dbMessage.metadata || null,
-            created_at: new Date().toISOString(),
-          };
-
-          // Update caches instantly (queryClient.setQueryData is synchronous)
-          addMessageToCache(currentConversationId, fullMessage);
-
-          updateConversation(currentConversationId, {
-            preview: [
-              {
-                content:
-                  fullMessage.content.length > 100
-                    ? fullMessage.content.substring(0, 100) + '...'
-                    : fullMessage.content,
-                sender: fullMessage.sender,
-              },
-            ],
-          });
-
-          updatePreview(currentConversationId, fullMessage);
-        } catch (error) {
-          console.error('Failed to sync caches:', error);
-        }
-      }
+    onFinish: async () => {
+      const activeConversationId = conversationIdRef.current;
+      if (!activeConversationId) return;
+      queryClient.invalidateQueries({
+        queryKey: ['messages', activeConversationId],
+      });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+      queryClient.invalidateQueries({
+        queryKey: ['conversation-messages-preview', activeConversationId],
+      });
     },
   });
 
-  // Simple conversation loading: seed AI SDK with history once
+  // Sync loaded messages from DB to useChat state
   useEffect(() => {
-    if (
-      currentConversationId &&
-      dbMessages.length > 0 &&
-      messages.length === 0 &&
-      status === 'ready'
-    ) {
-      // Let AI SDK handle the conversation history
+    if (dbMessages.length > 0) {
       setMessages(convertDbMessagesToUIMessages(dbMessages));
     }
-  }, [currentConversationId, dbMessages, messages.length, status, setMessages]);
+  }, [dbMessages, setMessages]);
 
-  // Cache invalidation is now handled in useChat onFinish callback
-  // This reduces race conditions and over-invalidating
-
-  // Sync internal conversationId state with prop changes
+  // Sync conversationId with props
   useEffect(() => {
-    if (propConversationId && propConversationId !== conversationId) {
-      setConversationId(propConversationId);
+    if (propConversationId !== undefined) {
+      setConversationId((prev) =>
+        prev === propConversationId ? prev : propConversationId
+      );
+      return;
     }
-  }, [propConversationId, conversationId]);
+    // For base route, ensure null state
+    if (pathname === '/dashboard/ai-chat') {
+      setConversationId((prev) => (prev === null ? prev : null));
+    }
+  }, [propConversationId, pathname]);
 
-  // Custom submit function
+  useEffect(() => {
+    const previousConversationId = previousConversationIdRef.current;
+    if (previousConversationId === currentConversationId) {
+      return;
+    }
+    if (!currentConversationId) {
+      setMessages([]);
+      setInput('');
+    } else if (previousConversationId) {
+      setMessages([]);
+      setInput('');
+    } else {
+      setInput('');
+    }
+    previousConversationIdRef.current = currentConversationId ?? null;
+  }, [currentConversationId, setMessages]);
+
+  // Custom submit function - optimistic approach
   const onSubmit = async (messageToSend: string) => {
     if (!messageToSend.trim()) return;
 
-    // Check if we're on ai-chat page and this is the first message
     const isCreateQuestionsPage = pathname === '/dashboard/ai-chat';
     const isFirstMessage = messages.length === 0;
-
-    // Prefer the URL param id if present to avoid transient null state
     let currentConversationId = propConversationId || conversationId;
 
     if (isCreateQuestionsPage && isFirstMessage && !currentConversationId) {
       try {
-        // Create conversation (without first message)
+        // 1. Create conversation first
         const conversation = await createConversation(
           'Create Questions Session'
         );
         currentConversationId = conversation.id;
 
-        // Update URL without forcing a remount; keep streaming in-place
-        try {
-          window.history.replaceState(
-            {},
-            '',
-            `/dashboard/ai-chat/${currentConversationId}`
-          );
-        } catch {}
+        // 2. Update URL without remounting (ChatSessionProvider picks this up reactively)
+        const targetPath = `/dashboard/ai-chat/${currentConversationId}`;
+        if (pathname !== targetPath) {
+          window.history.pushState(null, '', targetPath); // No remount!
+        }
 
+        // 3. Update local state
         setConversationId(currentConversationId);
+        conversationIdRef.current = currentConversationId;
+
+        // 4. Cache update for conversations list
         queryClient.invalidateQueries({ queryKey: ['conversations'] });
 
         if (onNewConversation) {
@@ -175,11 +163,11 @@ export default function ChatInterface({
         }
       } catch (error) {
         console.error('Failed to create conversation:', error);
-        // Fall back to normal chat
+        return;
       }
     }
 
-    // Submit to AI
+    // Send message with correct conversationId (useChat ID stays stable)
     sendMessage(
       { text: messageToSend },
       {
@@ -211,7 +199,6 @@ export default function ChatInterface({
   };
 
   // removed sessionStorage-based first-message handoff; we stream in-place
-
   // Starter prompt only for brand-new chats (no id in URL, no messages)
   const showStarter =
     !isLoadingMessages && !propConversationId && messages.length === 0;

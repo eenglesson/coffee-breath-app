@@ -454,30 +454,12 @@ export function CommandHistory({
       return dateB - dateA;
     });
 
-    console.log(
-      'Filtered conversations:',
-      filtered.length,
-      'first updated_at:',
-      filtered[0]?.updated_at
-    );
     return filtered;
   }, [conversationHistory, searchQuery]);
 
   const groupedConversations = useMemo(() => {
-    console.log(
-      'CommandHistory: conversationHistory changed',
-      conversationHistory?.length,
-      'conversations'
-    );
-    console.log(
-      'First conversation updated_at:',
-      conversationHistory?.[0]?.updated_at
-    );
     const result = groupConversationsByDate(conversationHistory, searchQuery);
-    console.log(
-      'Grouped result:',
-      result?.map((g) => `${g.name}: ${g.conversations.length}`)
-    );
+
     return result;
   }, [conversationHistory, searchQuery]);
 
