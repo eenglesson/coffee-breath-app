@@ -66,6 +66,7 @@ export default function StudentList({
               variant='ghost'
               size='icon'
               onClick={() => handleEditClick(student)}
+              className='rounded-full'
             >
               <Edit />
             </Button>

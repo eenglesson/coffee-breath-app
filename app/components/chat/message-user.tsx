@@ -122,11 +122,20 @@ export function MessageUser({
             onClick={copyToClipboard}
             type='button'
           >
-            {copied ? (
-              <Check className='size-4' />
-            ) : (
-              <CopyIcon className='size-4' />
-            )}
+            <span className='relative flex items-center justify-center'>
+              <CopyIcon
+                className={cn(
+                  'size-4 transition-all duration-150 ease-out',
+                  copied ? 'opacity-0 blur-[2px]' : 'opacity-100 blur-0'
+                )}
+              />
+              <Check
+                className={cn(
+                  'size-4 absolute transition-all duration-150 ease-out',
+                  copied ? 'opacity-100 blur-0' : 'opacity-0 blur-[2px]'
+                )}
+              />
+            </span>
           </button>
         </MessageAction>
         {/* @todo: add when ready */}
